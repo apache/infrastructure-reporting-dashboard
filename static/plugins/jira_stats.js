@@ -41,7 +41,7 @@ function ticket_to_row(data) {
     title_cell.style.whiteSpace = "nowrap";
     title_cell.style.textOverflow = "ellipsis";
 
-    title_cell.style.maxWidth = "calc(100vw - 560px - var(--sidebar))";
+    title_cell.style.maxWidth = "calc(100vw - 590px - var(--sidebar))";
     title_cell.style.display = "inline-block";
     title_cell.title = data.summary;
 
@@ -52,8 +52,8 @@ function ticket_to_row(data) {
 
     const status_div = document.createElement('div');
     status_div.style.height = "100%";
-    status_div.style.minWidth = "100%";
-    status_div.style.maxWidth = "6.7vw";
+    status_div.style.minWidth = "100px";
+    status_div.style.maxWidth = "7vw";
     status_div.className = `badge px-1 text-bg-${ticket_status_colors[ticket_status]}`;
     status_div.innerText = ticket_status_enum[ticket_status];
     return [
