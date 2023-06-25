@@ -10,6 +10,10 @@ const ticket_status_colors = ['primary', 'warning', 'secondary'];
 
 function ticket_to_row(data) {
     // Converts a ticket data entry to a row in the 'open tickets' table
+    let ticket_status = 0; // Default to WFI
+    if (data.paused) ticket_status = 1; // WFU, paused
+    if (data.issuetype === "Planned Work") ticket_status = 2; // Planned work, paused
+
 
     const hours_spent_wfi = Math.round(data.sla_time_counted/3600);
     let response_time = Math.round(data.response_time/3600);
@@ -17,18 +21,18 @@ function ticket_to_row(data) {
 
     let response_time_text = "N/A";
     let resolve_time_text = "N/A";
-    if (data.sla) {
+    if (data.sla && ticket_status != 2) {  // Disregard planned work
         response_time_text = `${response_time} / ${data.sla.respond} hours`
         resolve_time_text = `${hours_spent_wfi} / ${data.sla.resolve} hours`
     }
 
     const response_time_div = document.createElement('div');
-    response_time_div.className = data.sla_met_respond === false ? 'badge text-danger' : 'badge bg-transparent';
+    response_time_div.className = (data.sla_met_respond === false && ticket_status !== 2) ? 'badge text-danger' : 'badge bg-transparent';
     response_time_div.innerText = response_time_text;
     response_time_div.style.width = "120px";
 
     const resolve_time_div = document.createElement('div');
-    resolve_time_div.className = data.sla_met_resolve === false ? 'badge text-danger' : 'badge bg-transparent';
+    resolve_time_div.className = (data.sla_met_resolve === false && ticket_status !== 2) ? 'badge text-danger' : 'badge bg-transparent';
     resolve_time_div.innerText = resolve_time_text;
     resolve_time_div.style.width = "120px";
 
@@ -44,11 +48,6 @@ function ticket_to_row(data) {
     title_cell.style.maxWidth = "calc(100vw - 590px - var(--sidebar))";
     title_cell.style.display = "inline-block";
     title_cell.title = data.summary;
-
-
-    let ticket_status = 0; // Default to WFI
-    if (data.paused) ticket_status = 1; // WFU, paused
-    if (data.issuetype === "Planned Work") ticket_status = 2; // Planned work, paused
 
     const status_div = document.createElement('div');
     status_div.style.height = "100%";
