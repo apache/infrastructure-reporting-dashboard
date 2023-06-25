@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="ASF Infrastructure Reporting Dashboard">
+        <meta name="author" content="ASF Infrastructure <users@infra.apache.org>">
+
+        <title>Home · ASF Infrastructure Reporting Dashboard</title>
+
+        <link href="/_assets/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+        <link href="/_assets/bootstrap-icons.css" rel="stylesheet" integrity="sha384-b6lVK+yci+bfDmaY1u0zE8YYJt0TZxLEAFyYSLHId4xoVvsrQu3INevFKo+Xir8e" crossorigin="anonymous">
+
+
+        <!-- Favicons -->
+        <link rel="icon" href="/_assets/favicon.ico">
+        <meta name="theme-color" content="#712cf9">
+
+    </head>
+    <body style="margin: 10px; height: 96vh;">
+    <main style="margin: 0; overflow: hidden;">
+        <div class="row flex-grow-1 overflow-hidden g-6">
+            <div class="col-sm-auto bg-dark" id="sidebar_left">
+                <div class="sticky-top">
+                    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+                        <img src="/_assets/dashboard-logo.png" style="width: 32px; margin: auto;">
+                        <span class="ms-1 d-none d-xl-inline fs-6">Reporting Dashboard</span>
+                    </a>
+                    <hr>
+                    <ul class="nav nav-pills flex-column mb-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link text-white" onclick="render_home();">
+                                <i class="bi bi-house-fill fs-4" style="padding-right: 4px;"></i>
+                                <span class="ms-1 d-none d-xl-inline">Home</span>
+                            </a>
+                        </li>
+                        [for plugins]
+                        <li class="nav-item">
+                            <a href="#[plugins.slug]" onclick="render_dashboard_[plugins.slug]();" class="nav-link text-white">
+                                <i class="bi [plugins.icon] fs-4" style="padding-right: 4px;"></i>
+                                <span class="ms-1 d-none d-xl-inline">[plugins.title]</span>
+                            </a>
+                        </li>
+                        [end]
+                    </ul>
+                    <hr>
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="https://github.com/humbedooh.png" alt="" width="32" height="32" class="rounded-circle me-2">
+                            <span class="ms-1 d-none d-xl-inline">
+                            <small><strong>humbedooh@apache.org</strong></small>
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
+                            <li><a class="dropdown-item" href="#">New project...</a></li>
+                            <li><a class="dropdown-item" href="#">Settings</a></li>
+                            <li><a class="dropdown-item" href="#">Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">Sign out</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class='col py-0' style="padding-left: 16px; padding-top: 16px; height: 98vh; overflow-y: scroll; margin-right: 12px;">
+                <div class="card mw-50"">
+                    <div class="card-header">
+                        <h2 id="page_title" class="text-center"></h2>
+                    </div>
+                    <div class="card-body">
+                        <p class="" id="page_description"></p>
+                        <hr/>
+                        <div id="chart_area" class="mx-100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/_assets/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" type="text/ecmascript"></script>
+    <script src="/_assets/echarts.js" type="text/ecmascript"></script>
+    <script src="/_assets/plugins.js" type="text/ecmascript"></script>
+
+
+
+
+
+
+    </body>
+</html>
