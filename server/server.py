@@ -25,7 +25,7 @@ application = None
 if __name__ == "__main__":
     import app
 
-    application = app.main()
+    application = app.main(debug=True)
     application.run(host=app.config.server.bind, port=app.config.server.port)
 # hypercorn - has a quirk that imports server.py twice, so this workaround ensures the app only gets loaded once.
 elif not hasattr(__main__, "__file__"):
