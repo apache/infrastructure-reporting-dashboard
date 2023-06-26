@@ -45,4 +45,4 @@ class PluginList:
 
 root: PluginList = PluginList()
 
-from . import jirastats
+from . import jirastats, uptime

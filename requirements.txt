@@ -9,3 +9,4 @@ cmarkgfm
 asfpy~=0.49
 ezt~=1.1
 werkzeug~=2.3.6
+python-dateutil
