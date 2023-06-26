@@ -5,7 +5,7 @@ Description=ASF Infra Reporting Dashboard
 [Service]
 Type=simple
 WorkingDirectory=/opt/reporting-dashboard/server/
-ExecStart=/usr/local/bin/pipenv run python3 -m hypercorn server:application
+ExecStart=/usr/local/bin/pipenv run python3.11 -m hypercorn server:application
 Restart=always
 User=www-data
 Group=www-data
