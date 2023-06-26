@@ -1,5 +1,10 @@
 <!doctype html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
+<script type="application/javascript">
+    // Detect the browser dark/light mode preference
+    const sys_theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-bs-theme', sys_theme);
+</script>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -20,23 +25,23 @@
     <body style="margin: 10px; height: 96vh;">
     <main style="margin: 0; overflow: hidden;">
         <div class="row flex-grow-1 overflow-hidden g-6">
-            <div class="col-sm-auto bg-dark" id="sidebar_left">
+            <div class="col-sm-auto" id="sidebar_left">
                 <div class="sticky-top">
-                    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+                    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none">
                         <img src="/_assets/dashboard-logo.png" style="width: 32px; margin: auto;">
                         <span class="ms-1 d-none d-xl-inline fs-6">Reporting Dashboard</span>
                     </a>
                     <hr>
                     <ul class="nav nav-pills flex-column mb-auto">
                         <li class="nav-item">
-                            <a href="#" class="nav-link text-white" onclick="render_home();">
+                            <a href="#" class="nav-link" onclick="render_home();">
                                 <i class="bi bi-house-fill fs-4" style="padding-right: 4px;"></i>
                                 <span class="ms-1 d-none d-xl-inline">Home</span>
                             </a>
                         </li>
                         [for plugins]
                         <li class="nav-item">
-                            <a href="#[plugins.slug]" onclick="render_dashboard_[plugins.slug]();" class="nav-link text-white">
+                            <a href="#[plugins.slug]" onclick="render_dashboard_[plugins.slug]();" class="nav-link">
                                 <i class="bi [plugins.icon] fs-4" style="padding-right: 4px;"></i>
                                 <span class="ms-1 d-none d-xl-inline">[plugins.title]</span>
                             </a>
@@ -45,13 +50,13 @@
                     </ul>
                     <hr>
                     <div class="dropdown">
-                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="https://github.com/humbedooh.png" alt="" width="32" height="32" class="rounded-circle me-2">
                             <span class="ms-1 d-none d-xl-inline">
                             <small><strong>humbedooh@apache.org</strong></small>
                             </span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
+                        <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser1">
                             <li><a class="dropdown-item" href="#">New project...</a></li>
                             <li><a class="dropdown-item" href="#">Settings</a></li>
                             <li><a class="dropdown-item" href="#">Profile</a></li>

@@ -27,12 +27,12 @@ function ticket_to_row(data) {
     }
 
     const response_time_div = document.createElement('div');
-    response_time_div.className = (data.sla_met_respond === false && ticket_status !== 2) ? 'badge text-danger' : 'badge bg-transparent';
+    response_time_div.className = (data.sla_met_respond === false && ticket_status !== 2) ? 'badge text-danger' : 'badge bg-transparent text-reset';
     response_time_div.innerText = response_time_text;
     response_time_div.style.width = "120px";
 
     const resolve_time_div = document.createElement('div');
-    resolve_time_div.className = (data.sla_met_resolve === false && ticket_status !== 2) ? 'badge text-danger' : 'badge bg-transparent';
+    resolve_time_div.className = (data.sla_met_resolve === false && ticket_status !== 2) ? 'badge text-danger' : 'badge bg-transparent text-reset';
     resolve_time_div.innerText = resolve_time_text;
     resolve_time_div.style.width = "120px";
 

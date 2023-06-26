@@ -9,14 +9,11 @@ function chart_pie(title, description, values, styles) {
         }
     }
     const chart_pie_option = {
-        backgroundColor: "#212529",
+        backgroundColor: sys_theme === 'dark' ? "#212529" : "#0000",
         animation: false,
         title: {
             text: title ? title : "",
             left: 'center',
-            textStyle: {
-                color: "#ddd"
-            }
         },
         tooltip: {
             trigger: 'item',
@@ -33,7 +30,6 @@ function chart_pie(title, description, values, styles) {
                 detail: {
                     offsetCenter: [0, 0],
                     formatter: '{value}%',
-                    color: '#ddd',
                     borderColor: '#eee'
                 },
                 title: {
@@ -48,7 +44,7 @@ function chart_pie(title, description, values, styles) {
         ]
     };
 
-    var myChart = echarts.init(chartdiv, 'dark');
+    var myChart = echarts.init(chartdiv, sys_theme);
     myChart.setOption(chart_pie_option);
 
     const outerdiv = document.createElement('div');

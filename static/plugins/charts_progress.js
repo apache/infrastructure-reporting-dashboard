@@ -23,14 +23,11 @@ function chart_progress(title, description, value, total, styles) {
     }
 
     const chart_progress_option = {
-        backgroundColor: "#212529",
+        backgroundColor: sys_theme === 'dark' ? "#212529" : "#0000",
         animation: false,
         title: {
             text: title ? title : "",
             left: 'center',
-            textStyle: {
-                color: "#ddd"
-            }
         },
         series: [
             {
@@ -46,8 +43,7 @@ function chart_progress(title, description, value, total, styles) {
                     roundCap: false,
                     clip: false,
                     itemStyle: {
-                        borderWidth: 1,
-                        borderColor: '#464646'
+                        borderWidth: 1
                     }
                 },
                 axisLine: {
@@ -65,7 +61,7 @@ function chart_progress(title, description, value, total, styles) {
                 detail: {
                     offsetCenter: [0, 0],
                     formatter: '{value}%',
-                    color: '#ddd',
+                    //color: '#ddd',
                     borderColor: '#f00'
                 },
                 title: {
@@ -84,7 +80,7 @@ function chart_progress(title, description, value, total, styles) {
         ]
     };
 
-    var myChart = echarts.init(chartdiv, 'dark');
+    var myChart = echarts.init(chartdiv, sys_theme);
     myChart.setOption(chart_progress_option);
 
     const outerdiv = document.createElement('div');
