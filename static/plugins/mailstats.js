@@ -5,7 +5,7 @@ async function seed_mail_stats() {
 }
 
 async function render_dashboard_mailstats(hostname="collated") {
-    if (!mailstats_json) await seed_mail_stats();
+    if (!mailstats_json) await OAuthGate(seed_mail_stats);
     document.getElementById('page_title').innerText = `Mail Transfer Statistics, ${hostname}`;
     document.getElementById('page_description').innerText = "";
     const outer_chart_area = document.getElementById('chart_area');
