@@ -22,9 +22,12 @@ from ..lib import middleware, asfuid, config
 from ..plugins import mailstats
 
 
-#@asfuid.session_required
+@asfuid.session_required
 async def process(form_data):
-    return mailstats.get_stats()
+    creds = asfuid.Credentials()
+    if creds.root:
+        return mailstats.get_stats()
+    return {"nope": "more nope"}
 
 
 quart.current_app.add_url_rule(
