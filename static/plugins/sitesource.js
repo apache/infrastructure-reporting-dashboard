@@ -56,7 +56,7 @@ async function render_dashboard_sitesource(assignee, timespan) {
             new Date(data.check_time*1000.0).toISOString()
         ])
     }
-    const source_table = chart_table_list("Uptime quick stats across service categories", ["Website", "Retired?", "Source Type", "Source URL", "Branch", "Uses .asf.yaml?", "Last Checked"], source_array);
+    const source_table = chart_table_list("ASF project website checker", ["Website", "Retired?", "Source Type", "Source URL", "Branch", "Uses .asf.yaml?", "Last Checked"], source_array);
     source_table.style.width = "100%";
     outer_chart_area.appendChild(source_table);
 
