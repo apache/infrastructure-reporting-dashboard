@@ -25,7 +25,7 @@ async def process(form_data):
     action = form_data.get("action")
     if action == "logout":  # Clear the session
         quart.session.clear()
-        return "Logged out!"
+        return quart.Response(status=302, response="Signed out, bye!", headers={"Location": "/"})
     try:
         session = asfuid.Credentials()
         return {
@@ -36,7 +36,7 @@ async def process(form_data):
             "root": session.root,
         }
     except AssertionError:
-        return quart.Response(status=404, response="No active session or session expired. Please authenticate.")
+        return quart.Response(status=403, response="No active session or session expired. Please authenticate.")
 
 
 quart.current_app.add_url_rule(
