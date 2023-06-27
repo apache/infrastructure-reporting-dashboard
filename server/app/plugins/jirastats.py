@@ -249,4 +249,4 @@ async def poll_loop():
             await asyncio.sleep(DEFAULT_SCAN_INTERVAL)
 
 
-plugins.root.register("jira", "Jira Tickets", "bi-bug-fill", poll_loop, scan_loop)
+plugins.root.register(poll_loop, scan_loop, slug="jira", title="Jira Tickets", icon="bi-bug-fill", private=True)

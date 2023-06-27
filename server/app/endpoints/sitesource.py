@@ -36,4 +36,4 @@ quart.current_app.add_url_rule(
     view_func=middleware.glued(process),
 )
 
-plugins.root.register("sitesource", "Site Source Checker", "bi-share-fill")
+plugins.root.register(slug="sitesource", title="Site Source Checker", icon="bi-share-fill")

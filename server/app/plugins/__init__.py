@@ -27,6 +27,7 @@ pluginEntry = collections.namedtuple(
         "title",
         "icon",
         "loops",
+        "private",
     ),
 )
 
@@ -35,9 +36,9 @@ class PluginList:
     def __init__(self):
         self.plugins = []
 
-    def register(self, slug: str, title: str, icon: str, *loops: typing.Callable):
+    def register(self, *loops: typing.Callable, slug: str, title: str, icon: str, private: bool = False):
         """Registers a reporting plugin, adds to sidebar in UI and inits any necessary loops"""
-        self.plugins.append(pluginEntry(slug, title, icon, loops))
+        self.plugins.append(pluginEntry(slug, title, icon, loops, private or None))
         if loops:
             for loop in loops:
                 quart.current_app.add_background_task(loop)
@@ -45,4 +46,4 @@ class PluginList:
 
 root: PluginList = PluginList()
 
-from . import jirastats, uptime
+from . import jirastats, uptime, mailstats

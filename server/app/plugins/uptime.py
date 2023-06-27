@@ -95,4 +95,4 @@ async def scan_loop():
         await asyncio.sleep(3600)
 
 
-plugins.root.register("uptime", "Uptime Statistics", "bi-router-fill", scan_loop)
+plugins.root.register(scan_loop, slug="uptime", title="Uptime Statistics", icon="bi-router-fill")
