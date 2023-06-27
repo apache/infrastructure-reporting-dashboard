@@ -29,7 +29,9 @@ from . import config
 import werkzeug.routing
 import asyncio
 import functools
-
+import aiohttp
+import time
+import json
 
 async def consume_body():
     """Consumes the request body, punting it to dev-null. This is required for httpd to not throw 502 at error"""
@@ -157,3 +159,37 @@ def rate_limited(func):
         return await func(*args)
 
     return session_wrapper
+
+
+class CachedJson:
+    """A simple JSON URL fetcher with a built-in cache. Once a cached JSON element expires,
+    any subsequent reads will cause the class to re-fetch the object. If the object cannot be
+    fetched, a stale version will be returned instead.
+    Usage example:
+    foo = CachedJson("https://www.apache.org/foo.json")
+    jsondata = await foo.json
+    # do stuff here....
+    jsondata = await foo.json  # <- will either use cache or fetch again if out of date
+    """
+    def __init__(self, url: str, expiry: int = 30):
+        self.url = url
+        self.expiry = expiry
+        self.last = 0
+        self.timeout = aiohttp.ClientTimeout(total=30)
+        self._cache = None
+
+    @property
+    async def json(self):
+        now = time.time()
+        if now > (self.last + self.expiry):  # Cache expired?
+            try:
+                async with aiohttp.ClientSession(timeout=self.timeout) as hc:
+                    async with hc.get(self.url) as req:
+                        if req.status == 200:
+                            source_json = await req.json()
+                            if source_json:
+                                self._cache = source_json
+                                self.last = now
+            except (aiohttp.ClientError, json.JSONDecodeError) as e:
+                print(f"Could not fetch URL {self.url} for caching, will use stale checkout: {e}.")
+        return self._cache
