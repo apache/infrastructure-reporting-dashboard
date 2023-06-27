@@ -41,7 +41,7 @@
                         </li>
                     </ul>
                     <hr>
-                    Publicly accessible pages:
+                    <span class="ms-1 d-none d-xl-inline">Publicly accessible pages:</span>
                     <ul class="nav nav-pills flex-column mb-auto">
                         [for plugins][if-any plugins.private][else]
                         <li class="nav-item">
@@ -53,7 +53,7 @@
                         [end][end]
                     </ul>
                     <hr>
-                    Restricted to ASF members:
+                    <span class="ms-1 d-none d-xl-inline">Restricted to ASF members:</span>
                     <ul class="nav nav-pills flex-column mb-auto">
                         [for plugins][if-any plugins.private]
                         <li class="nav-item">
