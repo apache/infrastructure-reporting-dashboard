@@ -39,14 +39,30 @@
                                 <span class="ms-1 d-none d-xl-inline">Home</span>
                             </a>
                         </li>
-                        [for plugins]
+                    </ul>
+                    <hr>
+                    Publicly accessible pages:
+                    <ul class="nav nav-pills flex-column mb-auto">
+                        [for plugins][if-any plugins.private][else]
                         <li class="nav-item">
-                            <a href="#[plugins.slug]" onclick="render_dashboard_[plugins.slug]();" class="nav-link [if-any plugins.private]text-warning[end]">
+                            <a href="#[plugins.slug]" onclick="render_dashboard_[plugins.slug]();" class="nav-link">
                                 <i class="bi [plugins.icon] fs-4" style="padding-right: 4px;"></i>
                                 <span class="ms-1 d-none d-xl-inline">[plugins.title]</span>
                             </a>
                         </li>
-                        [end]
+                        [end][end]
+                    </ul>
+                    <hr>
+                    Restricted to ASF members:
+                    <ul class="nav nav-pills flex-column mb-auto">
+                        [for plugins][if-any plugins.private]
+                        <li class="nav-item">
+                            <a href="#[plugins.slug]" onclick="render_dashboard_[plugins.slug]();" class="nav-link text-warning">
+                                <i class="bi [plugins.icon] fs-4" style="padding-right: 4px;"></i>
+                                <span class="ms-1 d-none d-xl-inline">[plugins.title]</span>
+                            </a>
+                        </li>
+                        [end][end]
                     </ul>
                     <hr>
                     <div class="dropdown" id="usermenu" style="display: none;">
