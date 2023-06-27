@@ -42,18 +42,6 @@ class Credentials:
             self.projects = quart.session["projects"]
             self.pmcs = quart.session["pmcs"]
             self.root = quart.session["isRoot"]
-
-        elif (
-            config.server.debug_mode is True
-            and quart.request.authorization
-            and quart.request.authorization.username == config.server.debug_user
-            and quart.request.authorization.password == config.server.debug_password
-        ):
-            self.uid = "testing"
-            self.name = "Test Account"
-            self.projects = []
-            self.pmcs = []
-            self.root = True
         else:
             raise AssertionError("User not logged in via Web UI")
 
