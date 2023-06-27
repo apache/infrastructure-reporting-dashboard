@@ -22,7 +22,7 @@ from ..lib import middleware, asfuid, config
 from ..plugins import jirastats
 
 
-# @asfuid.session_required
+@asfuid.session_required
 async def process(form_data):
     action = form_data.get("action")
     if action == "stats":  # Basic stats
