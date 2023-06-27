@@ -2,10 +2,14 @@ let mailstats_json = null;
 
 async function seed_mail_stats() {
     mailstats_json = await (await fetch("/api/mailstats")).json();
+    show_mailstats("collated");
 }
 
 async function render_dashboard_mailstats(hostname="collated") {
-    if (!mailstats_json) await OAuthGate(seed_mail_stats);
+    await OAuthGate(seed_mail_stats);
+}
+
+function show_mailstats(hostname="collated") {
     document.getElementById('page_title').innerText = `Mail Transfer Statistics, ${hostname}`;
     document.getElementById('page_description').innerText = "";
     const outer_chart_area = document.getElementById('chart_area');
@@ -18,7 +22,7 @@ async function render_dashboard_mailstats(hostname="collated") {
         hostbox.checked = hostname === hostoption;
         hostbox.id = `hostoption_${hostoption}`;
         hostbox.name = "hostoption";
-        hostbox.addEventListener('click', () => render_dashboard_mailstats(hostoption));
+        hostbox.addEventListener('click', () => show_mailstats(hostoption));
         hostselector.appendChild(hostbox);
         const hostlabel = document.createElement('label');
         hostlabel.style.marginRight = "24px";
@@ -188,8 +192,6 @@ async function render_dashboard_mailstats(hostname="collated") {
         true
     );
     outer_chart_area.appendChild(sender_timeline_chart);
-
-
 
 }
 
