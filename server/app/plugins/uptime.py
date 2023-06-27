@@ -66,7 +66,6 @@ async def uptime_scan(months=DEFAULT_TIMESPAN_MONTHS):
                                     if uptime_val != "-":
                                         host_stats["uptime_monthly"][mid] = uptime_val
                                         uptimes.append(uptime_val)
-                            print(uptimes)
                             host_stats["uptime_average"] = (
                                 functools.reduce(lambda x, y: x + y, uptimes) / float(len(uptimes))
                                 if uptimes
