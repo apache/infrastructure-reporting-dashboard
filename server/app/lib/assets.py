@@ -25,6 +25,7 @@ import typing
 import io
 import shutil
 import asyncio
+import uuid
 
 
 def ezt_to_html(
@@ -57,6 +58,7 @@ def generate_assets(static_dir, htdocs_dir):
     # print(f"Writing front page file {target_filepath}")
     datadict = {
         "plugins": plugins.root.plugins,
+        "uuid": str(uuid.uuid4()),  # cache rejection on site regen
     }
     ezt_to_html(template_file=origin_filepath, data=datadict, target_filename=target_filepath)
 

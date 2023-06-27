@@ -80,7 +80,7 @@
 
     <script src="/_assets/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" type="text/ecmascript"></script>
     <script src="/_assets/echarts.js" type="text/ecmascript"></script>
-    <script src="/_assets/plugins.js" type="text/ecmascript"></script>
+    <script src="/_assets/plugins.js?[uuid]" type="text/ecmascript"></script>
 
 
 
