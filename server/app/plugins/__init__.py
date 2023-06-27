@@ -46,4 +46,4 @@ class PluginList:
 
 root: PluginList = PluginList()
 
-from . import jirastats, uptime, mailstats
+from . import jirastats, uptime
