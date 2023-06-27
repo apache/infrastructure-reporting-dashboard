@@ -41,7 +41,7 @@
                         </li>
                         [for plugins]
                         <li class="nav-item">
-                            <a href="#[plugins.slug]" onclick="render_dashboard_[plugins.slug]();" class="nav-link">
+                            <a href="#[plugins.slug]" onclick="render_dashboard_[plugins.slug]();" class="nav-link [if-any plugins.private]text-warning[end]">
                                 <i class="bi [plugins.icon] fs-4" style="padding-right: 4px;"></i>
                                 <span class="ms-1 d-none d-xl-inline">[plugins.title]</span>
                             </a>
@@ -49,19 +49,16 @@
                         [end]
                     </ul>
                     <hr>
-                    <div class="dropdown">
+                    <div class="dropdown" id="usermenu" style="display: none;">
                         <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img src="https://github.com/humbedooh.png" alt="" width="32" height="32" class="rounded-circle me-2">
+                            <i class="bi-person-circle fs-2 text-info p-1"></i>
                             <span class="ms-1 d-none d-xl-inline">
-                            <small><strong>humbedooh@apache.org</strong></small>
+                            <small><strong id="useremail"></strong></small>
                             </span>
                         </a>
                         <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser1">
-                            <li><a class="dropdown-item" href="#">New project...</a></li>
-                            <li><a class="dropdown-item" href="#">Settings</a></li>
-                            <li><a class="dropdown-item" href="#">Profile</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Sign out</a></li>
+                            <li><a class="dropdown-item" href="/api/session?action=logout">Sign out</a></li>
                         </ul>
                     </div>
                 </div>
