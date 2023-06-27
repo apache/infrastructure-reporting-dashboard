@@ -284,7 +284,7 @@ function render_jira_stats(assignee, timespan) {
 }
 
 function render_dashboard_jira() {
-    seed_jira_stats();
+    OAuthGate(seed_jira_stats);
 }
 
 
