@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -14,36 +15,22 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-"""ASF Infrastructure Reporting Dashboard - Plugin handler"""
-
+"""ASF Infrastructure Reporting Dashboard"""
+"""Handler for mail stats"""
 import quart
-import typing
-import collections
+from ..lib import middleware, asfuid, config
+from ..plugins import mailstats
 
-pluginEntry = collections.namedtuple(
-    "plugin",
-    (
-        "slug",
-        "title",
-        "icon",
-        "loops",
-        "private",
-    ),
+
+#@asfuid.session_required
+async def process(form_data):
+    return mailstats.get_stats()
+
+
+quart.current_app.add_url_rule(
+    "/api/mailstats",
+    methods=[
+        "GET",  # Session get/delete
+    ],
+    view_func=middleware.glued(process),
 )
-
-
-class PluginList:
-    def __init__(self):
-        self.plugins = []
-
-    def register(self, *loops: typing.Callable, slug: str, title: str, icon: str, private: bool = False):
-        """Registers a reporting plugin, adds to sidebar in UI and inits any necessary loops"""
-        self.plugins.append(pluginEntry(slug, title, icon, loops, private or None))
-        if loops:
-            for loop in loops:
-                quart.current_app.add_background_task(loop)
-
-
-root: PluginList = PluginList()
-
-from . import jirastats, uptime, mailstats
