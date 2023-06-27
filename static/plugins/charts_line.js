@@ -1,4 +1,4 @@
-function chart_line(title, description, series, styles) {
+function chart_line(title, description, series, styles, timeseries=false, fill=false) {
     const chartdiv = document.createElement('div');
     chartdiv.style.width = "500px";
     chartdiv.style.height = "300px";
@@ -22,11 +22,17 @@ function chart_line(title, description, series, styles) {
     }
 
     for (const [k,v] of Object.entries(series)) {
-        data_values = [];
+        let data_values = [];
         if (typeof v === "object") {
-            for (const [key, val] of Object.entries(v)) {
-                let i = keys.indexOf(key);
-                data_values[i] = val;
+            if (!timeseries) {
+                for (const [key, val] of Object.entries(v)) {
+                    let i = keys.indexOf(key);
+                    data_values[i] = val;
+                }
+            } else {
+                for (const entry of v) {
+                    data_values.push([new Date(entry[0]*1000.0), entry[1]]);
+                }
             }
         } else {
             data_values = v;
@@ -34,7 +40,9 @@ function chart_line(title, description, series, styles) {
         series_converted.push({
             name: k,
             type: "line",
-            data: data_values
+            data: data_values,
+            areaStyle: fill ? {} : null,
+            symbol: fill ? 'none' : null
         })
     }
     const chart_line_option = {
@@ -47,7 +55,7 @@ function chart_line(title, description, series, styles) {
 
         tooltip: {
             trigger: 'axis',
-            valueFormatter: (val) => `${val.toFixed(2)}%`
+            valueFormatter: timeseries ? null : (val) => `${val.toFixed(2)}%`
 
         },
         legend: {
@@ -57,17 +65,20 @@ function chart_line(title, description, series, styles) {
             right: 0
         },
         grid: {
-            right: 200
+            right: 180,
+            left: 80,
+            top: 30,
+            bottom: 24
         },
         xAxis: {
-            type: 'category',
-            boundaryGap: true,
+            type: timeseries ? 'time' : 'category',
+            boundaryGap: false,
             data: keys,
         },
         yAxis: {
             type: 'value',
             min: 'dataMin',
-            boundaryGap: true
+            boundaryGap: false
         },
         series: series_converted
     };
