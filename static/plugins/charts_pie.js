@@ -1,4 +1,4 @@
-function chart_pie(title, description, values, styles) {
+function chart_pie(title, description, values, styles, donut=false) {
     const chartdiv = document.createElement('div');
     chartdiv.style.width = "500px";
     chartdiv.style.height = "300px";
@@ -21,12 +21,19 @@ function chart_pie(title, description, values, styles) {
         },
         legend: {
             orient: 'vertical',
-            left: 'left'
+            left: 0,
+            top: 'center'
         },
         series: [
             {
                 type: 'pie',
-                radius: '75%',
+                radius: donut? ['30%', '60%'] : '80%',
+                left: '15%',
+                itemStyle: donut ? {
+                    borderRadius: 10,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                } : null,
                 detail: {
                     offsetCenter: [0, 0],
                     formatter: '{value}%',
