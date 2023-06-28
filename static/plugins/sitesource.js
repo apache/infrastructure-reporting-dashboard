@@ -42,13 +42,19 @@ async function render_dashboard_sitesource(assignee, timespan) {
         site_url.innerText = host;
         site_url.target = "_blank";
 
-        const retired = document.createElement('span');
-        retired.innerText = data.attic ? "Yes" : "No";
-        retired.className = data.attic ? "text-warning" : "text-muted";
+        const website = document.createElement('span');
+        website.appendChild(site_url);
+        if (data.attic) {
+            const status = document.createElement('a');
+            status.href = 'https://attic.apache.org/';
+            status.innerText = 'retired';
+            status.className = 'badge text-bg-warning link-underline link-underline-opacity-25';
+            status.style.marginLeft = '1em';
+            website.appendChild(status);
+        }
 
         source_array.push([
-            site_url,
-            retired,
+            website,
             data.git_url ? "Git" : "Subversion",
             source_url,
             data.git_branch || "N/A",
@@ -56,7 +62,7 @@ async function render_dashboard_sitesource(assignee, timespan) {
             new Date(data.check_time*1000.0).toISOString()
         ])
     }
-    const source_table = chart_table_list("ASF project website checker", ["Website", "Retired?", "Source Type", "Source URL", "Branch", "Uses .asf.yaml?", "Last Checked"], source_array);
+    const source_table = chart_table_list("ASF project website checker", ["Website", "Source Type", "Source URL", "Branch", "Uses .asf.yaml?", "Last Checked"], source_array);
     source_table.style.width = "100%";
     outer_chart_area.appendChild(source_table);
 
