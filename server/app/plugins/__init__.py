@@ -46,4 +46,8 @@ class PluginList:
 
 root: PluginList = PluginList()
 
-from . import jirastats, uptime, mailstats
+# Import each plugin.
+# note: for dev/test, you may comment-out specific plugins
+from . import jirastats
+from . import uptime
+from . import mailstats
