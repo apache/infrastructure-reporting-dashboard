@@ -34,29 +34,86 @@ async function render_dashboard_sitesource(assignee, timespan) {
         }
 
         const source_url = document.createElement('a');
-        if (data.git_url || data.svn_url) source_url.href = data.git_url ? data.git_url : data.svn_url;
-        source_url.innerText = data.git_url ? data.git_url : data.svn_url||"N/A";
+        source_url.href = data.git_url || data.svn_url;
+        source_url.innerText = source_url.href || 'N/A';
+        if (data.git_url
+            && data.git_url.startsWith('https://gitbox.apache.org/repos/asf/')) {
+            source_url.innerText = data.git_url.substr(36);
+        }
+        else if (data.svn_url) {
+            if (data.svn_url.startsWith('https://svn-master.apache.org/repos/asf/'))
+                source_url.innerText = data.svn_url.substr(40);
+            else if (data.svn_url.startsWith('https://svn-master.apache.org/repos/infra/'))
+                source_url.innerText = data.svn_url.substr(42);
+        }
 
         const site_url = document.createElement('a');
         site_url.href = `https://${host}`;
         site_url.innerText = host;
         site_url.target = "_blank";
 
-        const retired = document.createElement('span');
-        retired.innerText = data.attic ? "Yes" : "No";
-        retired.className = data.attic ? "text-warning" : "text-muted";
+        const website = document.createElement('span');
+        website.appendChild(site_url);
+        if (data.attic) {
+            const status = document.createElement('a');
+            status.href = 'https://attic.apache.org/';
+            status.innerText = 'retired';
+            status.className = 'badge text-bg-warning link-underline link-underline-opacity-25';
+            status.style.marginLeft = '1em';
+            website.appendChild(status);
+        }
+
+        const source = document.createElement('span');
+        const vcs = document.createElement('b');
+        if (data.git_url)
+            vcs.innerText = 'git:';
+        else if (!data.svn_url)
+            vcs.innerText = 'NO URL';
+        else if (data.svn_url.startsWith('https://svn-master.apache.org/repos/asf/'))
+            vcs.innerText = 'svn/asf:';
+        else if (data.svn_url.startsWith('http://svn-master.apache.org/repos/asf/'))
+            vcs.innerText = 'svn/asf:';
+        else if (data.svn_url.startsWith('https://svn-master.apache.org/repos/infra/'))
+            vcs.innerText = 'svn/infra:';
+        else
+            vcs.innerText = 'UNKNOWN';
+        vcs.style.display = 'inline-block';
+        vcs.style.width = '5em';
+        vcs.style.marginRight = '1em';
+        source.appendChild(vcs);
+
+        source.appendChild(source_url);
+
+        if (data.git_url) {
+            const branch = document.createElement('span');
+            branch.innerText = '[branch: ' + data.git_branch + ']';
+            branch.style.marginLeft = '1em';
+            source.appendChild(branch);
+
+            if (!uses_asfyaml) {
+                const not_asfyaml = document.createElement('span');
+                not_asfyaml.innerText = 'not .asf.yaml';
+                not_asfyaml.className = 'badge text-bg-danger';
+                not_asfyaml.style.marginLeft = '1em';
+                source.appendChild(not_asfyaml);
+            }
+        }
+
+        if (data.svn_url && data.svn_url.startsWith('http:')) {
+            const not_https = document.createElement('span');
+            not_https.innerText = 'not https';
+            not_https.className = 'badge text-bg-warning';
+            not_https.style.marginLeft = '1em';
+            source.appendChild(not_https);
+        }
 
         source_array.push([
-            site_url,
-            retired,
-            data.git_url ? "Git" : "Subversion",
-            source_url,
-            data.git_branch || "N/A",
-            asfyaml,
+            website,
+            source,
             new Date(data.check_time*1000.0).toISOString()
         ])
     }
-    const source_table = chart_table_list("ASF project website checker", ["Website", "Retired?", "Source Type", "Source URL", "Branch", "Uses .asf.yaml?", "Last Checked"], source_array);
+    const source_table = chart_table_list("ASF project website checker", ["Website", "Source", "Last Checked"], source_array);
     source_table.style.width = "100%";
     outer_chart_area.appendChild(source_table);
 
