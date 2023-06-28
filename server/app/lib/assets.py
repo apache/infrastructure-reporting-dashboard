@@ -68,8 +68,15 @@ def generate_assets(static_dir, htdocs_dir):
     for filename in sorted(os.listdir(plugin_js_dir)):
         if filename.endswith(".js"):
             filepath = os.path.join(plugin_js_dir, filename)
-            filedata = open(filepath).read()
-            js_assets += f"// {filename}:\n\n{filedata}\n"
+            try:
+                filedata = open(filepath).read()
+                js_assets += f"// {filename}:\n\n{filedata}\n"
+            except FileNotFoundError:
+                # In dev/test, this might be (say) an emacs recovery file,
+                # which does not really exist. Skip it.
+                # In production, we *just* did a listdir(), so we should
+                # never see a problem opening the file.
+                pass
 
     # Copy all assets to htdocs
     assets_origin = os.path.join(static_dir, "assets")
