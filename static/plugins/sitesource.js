@@ -58,8 +58,7 @@ async function render_dashboard_sitesource(assignee, timespan) {
             const status = document.createElement('a');
             status.href = 'https://attic.apache.org/';
             status.innerText = 'retired';
-            status.className = 'badge text-bg-warning link-underline link-underline-opacity-25';
-            status.style.marginLeft = '1em';
+            status.className = 'badge text-bg-warning link-underline link-underline-opacity-25 ms-2';
             website.appendChild(status);
         }
 
@@ -79,7 +78,7 @@ async function render_dashboard_sitesource(assignee, timespan) {
             vcs.innerText = 'UNKNOWN';
         vcs.style.display = 'inline-block';
         vcs.style.width = '5em';
-        vcs.style.marginRight = '1em';
+        vcs.className = 'me-2';
         source.appendChild(vcs);
 
         source.appendChild(source_url);
@@ -87,14 +86,13 @@ async function render_dashboard_sitesource(assignee, timespan) {
         if (data.git_url) {
             const branch = document.createElement('span');
             branch.innerText = '[branch: ' + data.git_branch + ']';
-            branch.style.marginLeft = '1em';
+            branch.className = 'ms-2';
             source.appendChild(branch);
 
             if (!uses_asfyaml) {
                 const not_asfyaml = document.createElement('span');
                 not_asfyaml.innerText = 'not .asf.yaml';
-                not_asfyaml.className = 'badge text-bg-danger';
-                not_asfyaml.style.marginLeft = '1em';
+                not_asfyaml.className = 'badge text-bg-danger ms-2';
                 source.appendChild(not_asfyaml);
             }
         }
@@ -102,8 +100,7 @@ async function render_dashboard_sitesource(assignee, timespan) {
         if (data.svn_url && data.svn_url.startsWith('http:')) {
             const not_https = document.createElement('span');
             not_https.innerText = 'not https';
-            not_https.className = 'badge text-bg-warning';
-            not_https.style.marginLeft = '1em';
+            not_https.className = 'badge text-bg-warning ms-2';
             source.appendChild(not_https);
         }
 
