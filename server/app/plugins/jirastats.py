@@ -230,14 +230,27 @@ async def poll_loop():
     """Schedules a scan every DEFAULT_SCAN_INTERVAL seconds, plus when a pubsub event happens.
     No more than two events can be scheduled at any given time (iow if a scan is running, and
     we get a pubsub event, we can add one more scan to be done in the future."""
+    loop = asyncio.get_running_loop()
+
+    def maybe_timeout(duration):
+        if hasattr(asyncio, 'timeout'):
+            return asyncio.timeout(duration)
+        import contextlib
+        class StubTimeout:
+            def reschedule(self, t):
+                pass
+        @contextlib.asynccontextmanager
+        async def gen_stub():
+            yield StubTimeout()
+        return gen_stub()
+
     pubsub_url = config.reporting.jira.get("pubsub_url")
     while True:
         _scan_schedule.append(time.time())  # Schedule a scan
         if pubsub_url:
             try:
-                async with asyncio.timeout(60) as to:
+                async with maybe_timeout(60) as to:
                     async for payload in asfpy.pubsub.listen(pubsub_url):
-                        loop = asyncio.get_running_loop()
                         to.reschedule(loop.time() + 60)  # Got a response, pubsub works, reschedule timeout
                         if "stillalive" not in payload:  # Not a ping
                             if len(_scan_schedule) < 2:
