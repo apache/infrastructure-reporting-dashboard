@@ -233,6 +233,7 @@ async def poll_loop():
     loop = asyncio.get_running_loop()
 
     def maybe_timeout(duration):
+        "Use asyncio.timeout() for Py3.11; stub out for lower versions."
         if hasattr(asyncio, 'timeout'):
             return asyncio.timeout(duration)
         import contextlib
