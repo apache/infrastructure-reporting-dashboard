@@ -130,7 +130,9 @@ function render_jira_stats(assignee, timespan) {
         failed_sla_fixtime: 0,
         open_issues: 0,
         unassigned_issues: 0,
-        priorities: {}
+        priorities: {},
+        closed_by_date: {},
+        created_by_date: {}
     };
 
     // Grab cutoff date for stats. Any ticket older than this will not be counted
@@ -146,8 +148,16 @@ function render_jira_stats(assignee, timespan) {
         if (!data.created_at) continue // No creation date, invalid data
         if (data.closed && (!data.closed_at || data.closed_at < deadline)) continue  // Closed before this timespan
         if (assignee && data.assignee !== assignee) continue  // Viewing assignee and this isn't assigned to them
-        if (data.closed === true) jira_breakdown.issues_resolved++;
-        if (data.created_at >= deadline) jira_breakdown.issues_opened++;
+        if (data.closed === true) {
+            const day = (data.closed_at - (data.closed_at % 86400)).toString();
+            jira_breakdown.issues_resolved++;
+            jira_breakdown.closed_by_date[day] = (jira_breakdown.closed_by_date[day]||0) + 1;
+        }
+        if (data.created_at >= deadline) {
+            const day = (data.created_at - (data.created_at % 86400)).toString();
+            jira_breakdown.issues_opened++;
+            jira_breakdown.created_by_date[day] = (jira_breakdown.created_by_date[day]||0) + 1;
+        }
         if (data.closed === true && data.resolve_time) {
             jira_breakdown.total_time_resolve += data.resolve_time;
             jira_breakdown.time_to_resolve_as_list.push(data.resolve_time);
@@ -235,6 +245,7 @@ function render_jira_stats(assignee, timespan) {
 
     jira_panel.appendChild(resolved_progress);
 
+    /*
     const breakdown = [];
     for (const [k,v] of Object.entries(jira_breakdown.priorities)) {
         breakdown.push({
@@ -252,6 +263,29 @@ function render_jira_stats(assignee, timespan) {
         }
         );
     jira_panel.appendChild(pie_breakdown);
+     */
+
+    // New and resolved issues, day by day
+    let x = 0; // cumulative counter
+    const created_collated = Object.entries(jira_breakdown.created_by_date).map(([k,v]) => {x+=v; return [parseInt(k), x]});
+    x = 0;
+    const resolved_collated = Object.entries(jira_breakdown.closed_by_date).map(([k,v]) => {x+=v; return [parseInt(k), x]});
+    const days_collated = {
+        "New issues": created_collated,
+        "Resolved issues": resolved_collated
+    };
+
+    const days_chart = chart_line(
+        "New and resolved issues, by date",
+        "",
+        days_collated,
+        {
+            height: "360px",
+            width: "580px"
+        },
+        timeseries=true
+    );
+    jira_panel.appendChild(days_chart);
 
     const infotable = {};
     let avg_time_respond = Math.round(jira_breakdown.total_time_respond/jira_breakdown.issues_responded_to/3600) + " hours";
