@@ -118,6 +118,8 @@ function render_jira_stats(assignee, timespan) {
         issues_touched: 0,
         total_time_respond: 0,
         total_time_resolve: 0,
+        time_to_respond_as_list: [],
+        time_to_resolve_as_list: [],
         longest_time_respond: 0,
         longest_time_resolve: 0,
         priority_changes: 0,
@@ -146,10 +148,14 @@ function render_jira_stats(assignee, timespan) {
         if (assignee && data.assignee !== assignee) continue  // Viewing assignee and this isn't assigned to them
         if (data.closed === true) jira_breakdown.issues_resolved++;
         if (data.created_at >= deadline) jira_breakdown.issues_opened++;
-        if (data.closed === true && data.resolve_time) jira_breakdown.total_time_resolve += data.resolve_time;
+        if (data.closed === true && data.resolve_time) {
+            jira_breakdown.total_time_resolve += data.resolve_time;
+            jira_breakdown.time_to_resolve_as_list.push(data.resolve_time);
+        }
         if (data.response_time) {
             jira_breakdown.total_time_respond += data.response_time;
             jira_breakdown.issues_responded_to++;
+            jira_breakdown.time_to_respond_as_list.push(data.response_time);
         }
         if (data.closed || data.created_at >= deadline) jira_breakdown.issues_touched++;  // closed or opened in this timespan
 
@@ -248,11 +254,26 @@ function render_jira_stats(assignee, timespan) {
     jira_panel.appendChild(pie_breakdown);
 
     const infotable = {};
+    let avg_time_respond = Math.round(jira_breakdown.total_time_respond/jira_breakdown.issues_responded_to/3600) + " hours";
+    let avg_time_resolve = Math.round(jira_breakdown.total_time_resolve/jira_breakdown.issues_resolved/3600) + " hours";
+    // If we have sufficient data to weed out anomalies, do so for avg time calcs
+    if (jira_breakdown.time_to_respond_as_list.length > 5) {
+        jira_breakdown.time_to_respond_as_list.sort((a,b) => a-b); // Sort by value, putting outliers in each end
+        const len = jira_breakdown.time_to_respond_as_list.length;
+        const to_pop = Math.min(1, Math.round(len/10)); // 10%, but at least one
+        avg_time_respond = Math.round(jira_breakdown.time_to_respond_as_list.slice(to_pop, -to_pop).reduce((a,b) => a+b) / (len-to_pop*2) / 3600) + " hours";
+    }
+    if (jira_breakdown.time_to_resolve_as_list.length > 5) {
+        jira_breakdown.time_to_resolve_as_list.sort((a,b) => a-b); // Sort by value, putting outliers in each end
+        const len = jira_breakdown.time_to_resolve_as_list.length;
+        const to_pop = Math.min(1, Math.round(len/10)); // 10%, but at least one
+        avg_time_resolve = Math.round(jira_breakdown.time_to_resolve_as_list.slice(to_pop, -to_pop).reduce((a,b) => a+b) / (len-to_pop*2) / 3600) + " hours";
+    }
     infotable[assignee ? "New issues assigned to self" : "Issues created"] = jira_breakdown.issues_opened;
     infotable["Issues responded to"] = jira_breakdown.issues_responded_to;
-    infotable["Average time to respond"] = Math.round(jira_breakdown.total_time_respond/jira_breakdown.issues_responded_to/3600) + " hours";
+    infotable["Average time to respond"] = avg_time_respond;
     infotable["Issues resolved"] = jira_breakdown.issues_resolved;
-    infotable["Average time to resolve"] = Math.round(jira_breakdown.total_time_resolve/jira_breakdown.issues_resolved/3600) + " hours";
+    infotable["Average time to resolve"] = avg_time_resolve;
     const introtable = chart_table("Quick Stats", null, infotable);
 
     jira_panel.appendChild(introtable);
