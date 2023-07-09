@@ -29,8 +29,8 @@ import datetime
 
 DEFAULT_SCAN_INTERVAL = 900  # Always run a scan every 15 minutes
 DEFAULT_DISCOUNT_DELTA = 600  # Calculate weekend discounts in 10 min increments
-DEFAULT_RETENTION = 90  # Only return tickets that are still open, or were updated in the last 90 days
-DEFAULT_SCAN_DAYS = 60  # Scan last 30 days in a full scan
+DEFAULT_RETENTION = 120  # Only return tickets that are still open, or were updated in the last 120 days
+DEFAULT_SCAN_DAYS = 90  # Scan last 90 days in a full scan. This should be, at max, 500, usually ~375 issues.
 DEFAULT_SLA = {  # Default (fallback) SLA
     "respond": 48,  # 48h to respond
     "resolve": 120,  # 120h to resolve
