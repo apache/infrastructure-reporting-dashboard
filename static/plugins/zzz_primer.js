@@ -10,7 +10,8 @@ async function prime_page() {
     set_sidebar_css();
     await OAuthGate(null, true);
     if (document.location.hash.length > 1) {
-        const pfunc = `render_dashboard_${document.location.hash.substring(1)}`;
+        const paction = document.location.hash.substring(1).match(/[-_a-z0-9]+/)[0];
+        const pfunc = `render_dashboard_${paction}`;
         if (typeof window[pfunc] === "function") {
             console.log(`Running ${pfunc}`)
             await window[pfunc]();
