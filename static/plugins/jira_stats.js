@@ -7,6 +7,7 @@ const ticket_status_enum = [
 ];
 
 const ticket_status_colors = ['primary', 'warning', 'secondary'];
+const default_timespan_days = 30; // By default, show stats for past 30 days
 
 function ticket_to_row(data) {
     // Converts a ticket data entry to a row in the 'open tickets' table
@@ -69,11 +70,13 @@ async function seed_jira_stats() {
     jira_json = await (await fetch("/api/jira?action=stats")).json();
     const outer_chart_area = document.getElementById('chart_area');
     outer_chart_area.innerText = "";
+    const qs = new URLSearchParams(document.location.hash);
+    const num_days = qs.has('days') ? parseInt(qs.get('days')) : default_timespan_days;
 
     // Top 10 folks, past three months
     const d = new Date();
     const now = d.getTime()/1000;
-    d.setDate(d.getDate()-30);
+    d.setDate(d.getDate()-num_days);
     const deadline = d.getTime()/1000;
 
     const top10 = {};
@@ -95,19 +98,19 @@ async function seed_jira_stats() {
 
     const [navmenu, chart_area] = navtab(
         navitems,
-        (val) => render_jira_stats(val)
+        (val) => render_jira_stats(val, num_days)
     );
     outer_chart_area.appendChild(navmenu);
     outer_chart_area.appendChild(chart_area);
     jira_panel = chart_area;
-    render_jira_stats();
+    render_jira_stats(null, num_days);
 }
 
 function render_jira_stats(assignee, timespan) {
     jira_panel.innerText = ''; // Clear charts
 
     // Ensure the parameters are usable
-    if (!timespan) timespan = 30;
+    if (!timespan) timespan = default_timespan_days;
     if (assignee === 'undefined') assignee = undefined
 
     // Init breakdown dict
