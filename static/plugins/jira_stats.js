@@ -165,7 +165,7 @@ function render_jira_stats(assignee, timespan) {
             jira_breakdown.total_time_resolve += data.resolve_time;
             jira_breakdown.time_to_resolve_as_list.push(data.resolve_time);
         }
-        if (data.response_time) {
+        if (data.first_response) {
             jira_breakdown.total_time_respond += data.response_time;
             jira_breakdown.issues_responded_to++;
             jira_breakdown.time_to_respond_as_list.push(data.response_time);
@@ -178,7 +178,7 @@ function render_jira_stats(assignee, timespan) {
             const sla_respond_time = data.sla.respond * 3600; // Max time to respond within SLA
             let n = 0; // if n === 2, then both response and resolve was within SLA limits
             if (data.closed && data.resolve_time <= sla_fix_time) { n++; jira_breakdown.resolved_within_sla++; }
-            if (data.response_time && data.response_time <= sla_respond_time) { n++; jira_breakdown.responded_within_sla++; }
+            if (data.first_response > 0 && data.response_time <= sla_respond_time) { n++; jira_breakdown.responded_within_sla++; }
             if (n === 2) jira_breakdown.fully_done_within_sla++;
             else if (data.closed === false && data.sla_time_counted > sla_fix_time) { jira_breakdown.failed_sla++; jira_breakdown.failed_sla_fixtime++;}
             else if (data.closed && data.response_time > sla_respond_time) { jira_breakdown.failed_sla++}
