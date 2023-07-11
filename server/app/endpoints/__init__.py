@@ -6,3 +6,4 @@ from . import jira
 from . import uptime
 from . import sitesource
 from . import mailstats
+from . import userid
