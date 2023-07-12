@@ -209,7 +209,7 @@ function render_jira_stats(assignee, timespan) {
         "Tickets handled fully in time",
         `${jira_breakdown.fully_done_within_sla} tickets were fully handled within SLA limits, out of a total of \
         ${jira_breakdown.fully_done_within_sla + jira_breakdown.failed_sla} tickets that were either closed in time \
-        or failed one or more SLA deadlines.`,
+        or failed one or more SLA deadlines (${jira_breakdown.failed_sla} failed SLAs).`,
         jira_breakdown.fully_done_within_sla,
         jira_breakdown.fully_done_within_sla + jira_breakdown.failed_sla,
         {
@@ -223,7 +223,7 @@ function render_jira_stats(assignee, timespan) {
         "Tickets responded to in time",
         `${jira_breakdown.responded_within_sla} tickets were responded to within SLA limits, out of a total of \
         ${jira_breakdown.issues_responded_to} tickets that were either responded to or failed to meet the \
-        response deadline set in the SLA guidelines.`,
+        response deadline in the SLA guidelines (${jira_breakdown.issues_responded_to-jira_breakdown.responded_within_sla} failed).`,
         jira_breakdown.responded_within_sla,
         jira_breakdown.issues_responded_to,
         {
@@ -237,7 +237,7 @@ function render_jira_stats(assignee, timespan) {
         "Tickets resolved in time",
         `${jira_breakdown.resolved_within_sla} tickets were resolved within SLA limits, out of a total of \
         ${jira_breakdown.resolved_within_sla + jira_breakdown.failed_sla} tickets that were either resolved in time \
-        or failed to be resolved within the SLA deadlines.`,
+        or failed to be resolved within the SLA deadlines (${jira_breakdown.failed_sla} failed).`,
         jira_breakdown.resolved_within_sla,
         jira_breakdown.resolved_within_sla + jira_breakdown.failed_sla,
         {
