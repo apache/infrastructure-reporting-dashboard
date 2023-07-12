@@ -25,11 +25,21 @@ import os
 
 HTDOCS_DIR = os.path.join(os.path.realpath(".."), "htdocs")  # File location of static assets
 STATIC_DIR = os.path.join(os.path.realpath(".."), "static")  # Pre-compile static assets
-
+SECRETS_FILE = "quart-secret.txt"
 
 def main(debug=False):
     app = quart.Quart(__name__)
-    app.secret_key = secrets.token_hex()  # For session management
+    # Cookie secrets
+    if os.path.isfile(SECRETS_FILE):
+        app_secret = open(SECRETS_FILE).read().strip()
+    else:
+        app_secret = secrets.token_hex()
+        try:
+            open(SECRETS_FILE, "w").write(app_secret)
+        except PermissionError:
+            print(f"Could not write cookie secret to {SECRETS_FILE}, not storing permanent secret.")
+    app.secret_key = app_secret
+
     app.url_map.converters["filename"] = middleware.FilenameConverter  # Special converter for filename-style vars
 
     # Static files (or index.html if requesting a dir listing)
