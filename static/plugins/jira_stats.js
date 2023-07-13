@@ -135,7 +135,9 @@ function render_jira_stats(assignee, timespan) {
         unassigned_issues: 0,
         priorities: {},
         closed_by_date: {},
-        created_by_date: {}
+        created_by_date: {},
+        triage_times: [],
+        triaged: 0
     };
 
     // Grab cutoff date for stats. Any ticket older than this will not be counted
@@ -166,6 +168,10 @@ function render_jira_stats(assignee, timespan) {
             jira_breakdown.time_to_resolve_as_list.push(data.resolve_time);
         }
         if (data.first_response) {
+            if (data.first_response >= deadline) { // If triaged this week, add to triage stats
+                jira_breakdown.triage_times.push(data.response_time);
+                jira_breakdown.triaged++;
+            }
             jira_breakdown.total_time_respond += data.response_time;
             jira_breakdown.issues_responded_to++;
             jira_breakdown.time_to_respond_as_list.push(data.response_time);
@@ -306,11 +312,18 @@ function render_jira_stats(assignee, timespan) {
         const to_pop = Math.min(1, Math.round(len/10)); // 10%, but at least one
         avg_time_resolve = Math.round(jira_breakdown.time_to_resolve_as_list.slice(to_pop, -to_pop).reduce((a,b) => a+b) / (len-to_pop*2) / 3600) + " hours";
     }
-    infotable[assignee ? "New issues assigned to self" : "Issues created"] = jira_breakdown.issues_opened;
-    infotable["Issues responded to"] = jira_breakdown.issues_responded_to;
-    infotable["Average time to respond"] = avg_time_respond;
+    infotable["All issues"] = null; // Header
+    infotable["Issues worked"] = jira_breakdown.issues_responded_to;
     infotable["Issues resolved"] = jira_breakdown.issues_resolved;
     infotable["Average time to resolve"] = avg_time_resolve;
+    infotable["New issues / First response"] = null; // Header
+    infotable[assignee ? "New issues assigned to self" : "Issues created"] = jira_breakdown.issues_opened;
+    if (jira_breakdown.triaged) { // Show triage stats?
+        const median_triage_time = (Math.round(Math.median(jira_breakdown.triage_times) / 360)/10);
+        const average_triage_time = (Math.round(Math.sum(jira_breakdown.triage_times) / 360 / jira_breakdown.triaged)/10);
+        infotable["Average triage time"] = average_triage_time.toFixed(average_triage_time < 10 ? 1 : 0) + " hours";
+        infotable["Median triage time"] = median_triage_time.toFixed(median_triage_time < 10 ? 1 : 0) + " hours";
+    }
     const introtable = chart_table("Quick Stats", null, infotable);
 
     jira_panel.appendChild(introtable);
