@@ -25,6 +25,8 @@ from ..plugins import jirastats
 @asfuid.session_required
 async def process(form_data):
     action = form_data.get("action")
+    if not quart.session.get("isRoot", False):
+        return {"no": "cake for you"}
     if action == "stats":  # Basic stats
         return jirastats.get_issues()
 
