@@ -1,4 +1,6 @@
 function chart_table(title, headers, dict) {
+    // Generates a striped table with optional headers and rows corresponding to the provided key/value dictionary.
+    // If a key has no corresponding value (is null), the row is treated as a sub-header.
     const table_div = document.createElement('div');
     table_div.style.width = "500px";
     table_div.style.height = "380px";
@@ -39,9 +41,15 @@ function chart_table(title, headers, dict) {
             td_key.innerText = key + ":";
             td_key.style.fontWeight = 'bold';
             tr.appendChild(td_key);
-            const td_value = document.createElement('td');
-            td_value.innerText = value;
-            tr.appendChild(td_value);
+            if (value === null) { // If value is null, this row is treated as a sub-header
+                td_key.colSpan = 2;
+                td_key.style.textAlign = 'center';
+                td_key.style.fontVariant = 'small-caps';
+            } else {
+                const td_value = document.createElement('td');
+                td_value.innerText = value;
+                tr.appendChild(td_value);
+            }
             table_body.appendChild(tr);
         }
         table.appendChild(table_body);
