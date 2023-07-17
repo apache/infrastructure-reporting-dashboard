@@ -18,6 +18,7 @@
 """ASF Infrastructure Reporting Dashboard"""
 """Handler for session operations (view current session, log out)"""
 import quart
+import time
 from ..lib import middleware, asfuid, config
 
 
