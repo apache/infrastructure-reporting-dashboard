@@ -28,6 +28,7 @@ async def process(form_data):
         return quart.Response(status=302, response="Signed out, bye!", headers={"Location": "/"})
     try:
         session = asfuid.Credentials()
+        quart.session["timestamp"] = int(time.time())  # Update timestamp so we don't time out for another 24h.
         return {
             "uid": session.uid,
             "name": session.name,
