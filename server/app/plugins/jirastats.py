@@ -23,7 +23,6 @@ from .. import plugins
 import aiohttp
 import time
 import re
-import typing
 import asfpy.pubsub
 import datetime
 
@@ -68,6 +67,7 @@ class JiraTicket:
         self.sla_met_resolve = None
         self.sla_time_counted = 0
         self.statuses = []
+        self.changelog = []
         self.paused = self.issuetype in config.reporting.jira.get("no_slas", [])
 
         # Scan all changelog entries
@@ -76,6 +76,7 @@ class JiraTicket:
                 "author" in changelog_entry and changelog_entry["author"]["name"] or "nobody"
             )  # May have been deleted
             changelog_epoch = self.get_time(changelog_entry["created"])
+            self.changelog.append((changelog_author, changelog_epoch))
             for item in changelog_entry.get("items", []):
                 field = item["field"]
                 if field == "assignee":  # Ticket (re)assigned
@@ -97,6 +98,7 @@ class JiraTicket:
         for comment in data["fields"].get("comment", {}).get("comments", []):
             comment_author = comment["author"]["name"]
             comment_epoch = self.get_time(comment["created"])
+            self.changelog.append((comment_author, comment_epoch))
             if comment_author != self.author:  # Comment by someone other than the ticket author
                 self.set_fr(comment_epoch)
                 break  # Only need to find the first (earliest) occurrence
