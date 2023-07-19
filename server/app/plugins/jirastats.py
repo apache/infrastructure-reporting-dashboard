@@ -153,8 +153,8 @@ class JiraTicket:
         should_discount = config.reporting.jira.get("sla_discount_weekend")
         seconds_spent = to_epoch - from_epoch  # Add seconds between the two transitions
         if should_discount:
-            dt_start = datetime.datetime.fromtimestamp(from_epoch)
-            dt_end = datetime.datetime.fromtimestamp(to_epoch)
+            dt_start = datetime.datetime.utcfromtimestamp(from_epoch)
+            dt_end = datetime.datetime.utcfromtimestamp(to_epoch)
             total_discount = 0
             dt_temp = dt_start
             while dt_temp < dt_end and total_discount < seconds_spent:
@@ -177,7 +177,11 @@ class JiraTicket:
     @staticmethod
     def get_time(string):
         """Converts a jira ISO timestamp to unix epoch"""
-        return int(time.mktime(time.strptime(re.sub(r"\..*", "", str(string)), "%Y-%m-%dT%H:%M:%S")))
+        ts = time.strptime(re.sub(r"\..*", "", str(string)), "%Y-%m-%dT%H:%M:%S")
+        epoch_local = time.mktime(ts)
+        # Account for UTC offset when computer has a local TZ
+        utc_offset = (datetime.datetime.fromtimestamp(epoch_local) - datetime.datetime.utcfromtimestamp(epoch_local)).total_seconds()
+        return int(epoch_local + utc_offset)
 
 
 def process_cache(issues):
