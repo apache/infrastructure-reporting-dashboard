@@ -25,7 +25,7 @@ import time
 import functools
 
 UID_RE = re.compile(r"^(?:uid=)?([^,]+)")
-SESSION_TIMEOUT = 86400  # Time out user sessions after 1 day.
+SESSION_TIMEOUT = 86400 * 3  # Time out user sessions after 3 days.
 
 
 class Credentials:
