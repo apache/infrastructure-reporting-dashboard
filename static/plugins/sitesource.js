@@ -72,6 +72,8 @@ async function render_dashboard_sitesource(assignee, timespan) {
             vcs.innerText = 'svn/asf:';
         else if (data.svn_url.startsWith('http://svn-master.apache.org/repos/asf/'))
             vcs.innerText = 'svn/asf:';
+        else if (data.svn_url.startsWith('https://svn.apache.org/repos/asf/'))
+            vcs.innerText = 'svn/asf:'; // chemistry.a.o/javadoc    
         else if (data.svn_url.startsWith('https://svn-master.apache.org/repos/infra/'))
             vcs.innerText = 'svn/infra:';
         else
