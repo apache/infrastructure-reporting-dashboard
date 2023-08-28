@@ -34,8 +34,10 @@ async function render_dashboard_sitesource(assignee, timespan) {
         }
 
         const source_url = document.createElement('a');
-        source_url.href = data.git_url || data.svn_url;
-        source_url.innerText = source_url.href || 'N/A';
+        // INFRA-24932: Only set .href if we have a URL from somewhere
+        if (data.git_url) source_url.href = data.git_url;
+        if (data.svn_url) source_url.href = data.svn_url;
+        source_url.innerText = (source_url.href && source_url.href.length) ? source_url.href : 'N/A';
         if (data.git_url
             && data.git_url.startsWith('https://gitbox.apache.org/repos/asf/')) {
             source_url.innerText = data.git_url.substr(36);
