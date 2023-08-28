@@ -123,14 +123,14 @@ async function render_dashboard_sitesource(assignee, timespan) {
         
         const rev_link = document.createElement('a');
         if (data.git_version) {
-            const [rev_no, rev_date] = split_once(data.git_version.split, " ");
+            const [rev_no, rev_date] = split_once(data.git_version, " ");
             rev_link.href = `${data.git_url}/?a=commitdiff;h=${rev_no}`;
             rev_link.innerText = rev_no;
             dates.appendChild(document.createTextNode(" ("));
             dates.appendChild(rev_link);
             dates.appendChild(document.createTextNode(") "));
         } else if (data.svn_version) {
-            const [rev_no, rev_date] = split_once(data.svn_version.split, " ");
+            const [rev_no, rev_date] = split_once(data.svn_version, " ");
             rev_link.href = `https://svn.apache.org/viewvc?view=revision&revision=${rev_no}`;
             rev_link.innerText = "r" + rev_no;
             dates.appendChild(document.createTextNode(" ("));
