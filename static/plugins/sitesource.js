@@ -124,7 +124,7 @@ async function render_dashboard_sitesource(assignee, timespan) {
         const rev_link = document.createElement('a');
         if (data.git_version) {
             const [rev_no, rev_date] = split_once(data.git_version, " ");
-            rev_link.href = `${data.git_url.replace(/\/$/, '')}?a=commitdiff;h=${rev_no}`; // trim trailing slashes
+            rev_link.href = `${data.git_url.replace(/\/$/, '')}/commit/${rev_no}`; // trim trailing slashes
             rev_link.innerText = rev_no;
             dates.appendChild(document.createTextNode(" ("));
             dates.appendChild(rev_link);
