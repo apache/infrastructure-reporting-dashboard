@@ -4,6 +4,15 @@ async function seed_site_source() {
     site_source_json = await (await fetch("/api/sitesource")).json();
 }
 
+function split_once(str, splitter) {
+    // split a string only once (String.split doesn't allow this)
+    const i = str.indexOf(splitter);
+    if (i >= 0) {
+      return [str.slice(0,i), str.slice(i+1)]
+    }
+    return [str, null]
+}
+
 async function render_dashboard_sitesource(assignee, timespan) {
     if (!site_source_json) await seed_site_source();
     document.getElementById('page_title').innerText = "Site Source Checker";
@@ -106,10 +115,31 @@ async function render_dashboard_sitesource(assignee, timespan) {
             source.appendChild(not_https);
         }
 
+        // Last check and latest revision
+        const dates = document.createElement('span');
+        dates.appendChild(document.createTextNode(new Date(data.check_time*1000.0).toISOString()));
+        
+        const rev_link = document.createElement('a');
+        if (data.git_version) {
+            const [rev_no, rev_date] = split_once(data.git_version.split, " ");
+            rev_link.href = `${data.git_url}/?a=commitdiff;h=${rev_no}`;
+            rev_link.innerText = rev_no;
+            dates.appendChild(document.createTextNode(" (");
+            dates.appendChild(rev_link);
+            dates.appendChild(document.createTextNode(") ");
+        } else if (data.svn_version) {
+            const [rev_no, rev_date] = split_once(data.svn_version.split, " ");
+            rev_link.href = `https://svn.apache.org/viewvc?view=revision&revision=${rev_no}`;
+            rev_link.innerText = "r" + rev_no;
+            dates.appendChild(document.createTextNode(" (");
+            dates.appendChild(rev_link);
+            dates.appendChild(document.createTextNode(") ");
+        }
+        
         source_array.push([
             website,
             source,
-            new Date(data.check_time*1000.0).toISOString()
+            dates
         ])
     }
     const source_table = chart_table_list("ASF project website checker", ["Website", "Source", "Last Checked"], source_array);
