@@ -6,9 +6,11 @@ async function seed_site_source() {
 
 function split_once(str, splitter) {
     // split a string only once (String.split doesn't allow this)
-    const i = str.indexOf(splitter);
-    if (i >= 0) {
-      return [str.slice(0,i), str.slice(i+1)]
+    if (typeof str === "string") {
+        const i = str.indexOf(splitter);
+        if (i >= 0) {
+          return [str.slice(0,i), str.slice(i+1)]
+        }
     }
     return [str, null]
 }
