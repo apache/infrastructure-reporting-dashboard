@@ -1,4 +1,4 @@
-function chart_bar(title, description, series, styles, timeseries=false, stacked=false) {
+function chart_bar(title, description, series, styles, timeseries=false, stacked=false, fmtoptions={}) {
     const chartdiv = document.createElement('div');
     chartdiv.style.width = "500px";
     chartdiv.style.height = "300px";
@@ -60,6 +60,14 @@ function chart_bar(title, description, series, styles, timeseries=false, stacked
                 let output = `<h6>${params[0].axisValueLabel}</h6><table class="w-full">`;
                 params.reverse().forEach(function (param) {
                     const value =param.data;
+                    if (fmtoptions.binary) {
+                        let val = value[1];
+                        if (val > (1024**4)) val = (val / (1024**4)).toFixed(2) + "TB";
+                        else if (val > (1024**3)) val = (val / (1024**3)).toFixed(2) + "GB";
+                        else if (val > (1024**2)) val = (val / (1024**2)).toFixed(2) + "MB";
+                        else if (val > (1024**1)) val = (val / (1024**1)).toFixed(2) + "KB";
+                        value[1] = val;
+                    }
                     if (value[1] !== 0) {
                         output += `<tr>
                           <td>${param.marker}</td>
@@ -78,7 +86,7 @@ function chart_bar(title, description, series, styles, timeseries=false, stacked
             right: 0
         },
         grid: {
-            right: 200
+            right: fmtoptions.widelegend ? 500 : 200,
         },
         xAxis: {
             type: timeseries ? 'time' : 'category',
@@ -87,8 +95,17 @@ function chart_bar(title, description, series, styles, timeseries=false, stacked
         },
         yAxis: {
             type: 'value',
-            min: 'dataMin',
-            boundaryGap: true
+            min: fmtoptions.binary ? 0 : 'dataMin',
+            boundaryGap: true,
+            axisLabel: fmtoptions.binary ? {
+                formatter: (val) => {
+                    if (val > (1024**4)) val = (val / (1024**4)).toFixed(2) + "TB";
+                    else if (val > (1024**3)) val = (val / (1024**3)).toFixed(2) + "GB";
+                    else if (val > (1024**2)) val = (val / (1024**2)).toFixed(2) + "MB";
+                    else if (val > (1024**1)) val = (val / (1024**1)).toFixed(2) + "KB";
+                    return val
+                }
+            } : {}
         },
         series: series_converted
     };

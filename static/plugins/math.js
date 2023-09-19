@@ -12,3 +12,10 @@ Math.median = function (numbers) {
 }
 
 Math.sum = (numbers) => numbers.reduce((a,b) => a+b);
+
+Number.prototype.pretty = function(fix) {
+    if (fix) {
+        return String(this.toFixed(fix)).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
+    }
+    return String(this.toFixed(0)).replace(/(\d)(?=(\d{3})+$)/g, '$1,');
+};

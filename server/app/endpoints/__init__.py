@@ -7,3 +7,4 @@ from . import uptime
 from . import sitesource
 from . import mailstats
 from . import userid
+from . import downloads

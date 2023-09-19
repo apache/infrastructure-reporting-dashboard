@@ -11,3 +11,5 @@ ezt~=1.1
 werkzeug~=2.3.6
 python-dateutil
 psycopg[binary]
+elasticsearch==7.13.0
+elasticsearch_dsl==7.3.0
