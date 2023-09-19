@@ -5,8 +5,8 @@ async function fetch_download_stats(prefs) {
     let qs = new URLSearchParams(document.location.hash);
     let project = qs.get("project");
     const outer_chart_area = document.getElementById('chart_area');
-    if (!project) {
-        outer_chart_area.innerText = "Please enter a project name in the field above to fetch stats"
+    if (!project || project.length < 2 || project.search(/[^-\/a-z0-9]+/) !== -1) {
+        outer_chart_area.innerText = "Please enter a valid project name in the field above to fetch stats"
         return
     }
     let duration = "60d";
@@ -41,6 +41,9 @@ function show_download_stats(project, stats_as_json) {
     document.getElementById('page_title').innerText = `Download Statistics for ${project}:`;
     const outer_chart_area = document.getElementById('chart_area');
     outer_chart_area.innerText = "";
+    if (stats_as_json.success === false) {
+        outer_chart_area.innerText = stats_as_json.message;
+    }
 
 
     const total_downloads_histogram = {};
