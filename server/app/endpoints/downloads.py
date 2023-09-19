@@ -151,7 +151,7 @@ async def process(form_data):
                 if sum([x for x in cca2_hits.values()]) > sum([x for x in downloaded_artifacts[url]["cca2"].values()]):
                     downloaded_artifacts[url]["cca2"] = cca2_hits
 
-    return downloaded_artifacts
+    return downloaded_artifacts or {"success": False, "message": "No results found"}
 
 
 quart.current_app.add_url_rule(
