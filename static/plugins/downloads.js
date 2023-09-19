@@ -6,7 +6,7 @@ async function fetch_download_stats(prefs) {
     let project = qs.get("project");
     const outer_chart_area = document.getElementById('chart_area');
     if (!project || project.length < 2 || project.search(/[^-\/a-z0-9]+/) !== -1) {
-        outer_chart_area.innerText = "Please enter a valid project name in the field above to fetch stats"
+        outer_chart_area.innerText = "Please enter a valid project name (for instance, netbeans) in the field above to fetch download statistics. For podling projects, you may need to add the 'incubator/' prefix, e.g. 'incubator/ponymail'."
         return
     }
     let duration = "60d";
