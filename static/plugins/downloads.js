@@ -116,7 +116,7 @@ function show_download_stats(project, stats_as_json) {
 
     console.log(total_downloads_curated)
     const total_downloads = chart_bar(
-        `Downloads for ${project}, past month`,
+        `Downloads for ${project}, past two months`,
         "",
         total_downloads_curated,
         {
@@ -152,7 +152,7 @@ function show_download_stats(project, stats_as_json) {
     }
 
     const total_bytes = chart_bar(
-        `Downloads for ${project}, past month, by traffic volume`,
+        `Downloads for ${project}, past two months, by traffic volume`,
         "",
         total_bytes_curated,
         {
