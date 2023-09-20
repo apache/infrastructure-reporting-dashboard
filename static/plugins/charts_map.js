@@ -1,5 +1,5 @@
 
-async function chart_map(title, description, values, styles) {
+function chart_map(title, description, values, styles) {
     const chartdiv = document.createElement('div');
     chartdiv.style.width = "700px";
     chartdiv.style.height = "400px";
