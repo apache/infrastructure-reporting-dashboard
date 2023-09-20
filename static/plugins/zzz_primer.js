@@ -1,4 +1,5 @@
 const _root_style = document.querySelector(':root');
+let worldJson;
 
 function set_sidebar_css() {
     const sidebar = document.getElementById('sidebar_left');
@@ -9,6 +10,7 @@ function set_sidebar_css() {
 async function prime_page() {
     set_sidebar_css();
     await OAuthGate(null, true);
+    worldJson = await (await fetch("/_assets/world.json")).json();
     if (document.location.hash.length > 1) {
         const paction = document.location.hash.substring(1).match(/[-_a-z0-9]+/)[0];
         const pfunc = `render_dashboard_${paction}`;
