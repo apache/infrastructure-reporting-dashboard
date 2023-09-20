@@ -47,7 +47,8 @@ function chart_table(title, headers, dict) {
                 td_key.style.fontVariant = 'small-caps';
             } else {
                 const td_value = document.createElement('td');
-                td_value.innerText = value;
+                if (typeof value === "object") td_value.appendChild(value);
+                else td_value.innerText = value;
                 tr.appendChild(td_value);
             }
             table_body.appendChild(tr);
