@@ -14,7 +14,7 @@ async function fetch_download_stats(prefs) {
     outer_chart_area.innerText = "Fetching data, please wait...";
 
     let download_stats = await (await fetch(`/api/downloads?project=${project}&duration=${duration}`)).json();
-    show_download_stats(project, download_stats);
+    show_download_stats(project, download_stats, duration);
 }
 
 async function render_dashboard_downloads(project, duration="7d") {
@@ -35,7 +35,7 @@ async function render_dashboard_downloads(project, duration="7d") {
     await OAuthGate(fetch_download_stats);
 }
 
-function show_download_stats(project, stats_as_json) {
+function show_download_stats(project, stats_as_json, duration="7d") {
     if (!project || project === "") return
 
     document.getElementById('page_title').innerText = `Download Statistics for ${project}:`;
@@ -43,8 +43,8 @@ function show_download_stats(project, stats_as_json) {
     outer_chart_area.innerText = "";
     if (stats_as_json.success === false) {
         outer_chart_area.innerText = stats_as_json.message;
+        return
     }
-
 
     const total_downloads_histogram = {};
     const total_downloads_curated = {};
@@ -206,10 +206,15 @@ function show_download_stats(project, stats_as_json) {
 
     let total_hits = 0;
 
+    const jsonlink = document.createElement('a');
+    jsonlink.href = `/api/downloads?project=${project}&duration=${duration}`;
+    jsonlink.innerText = "Raw JSON data";
+
     let dlinfotable = {
         "Total downloads": downloads_as_sum.pretty(),
         "Total bytes transferred": bytes_as_sum.pretty(),
-        "Unique user count": visitors_as_sum.pretty()
+        "Unique user count": visitors_as_sum.pretty(),
+        "Raw data": jsonlink
     };
 
     const infotable = chart_table("At a glance", null, dlinfotable);
