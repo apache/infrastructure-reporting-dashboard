@@ -9,7 +9,7 @@ async function fetch_download_stats(prefs) {
         outer_chart_area.innerText = "Please enter a valid project name (for instance, netbeans) in the field above to fetch download statistics. For podling projects, you may need to add the 'incubator/' prefix, e.g. 'incubator/ponymail'."
         return
     }
-    let duration = "60d";
+    let duration = "60d"; // TODO: Make configurable
 
     outer_chart_area.innerText = "Fetching data, please wait...";
 
