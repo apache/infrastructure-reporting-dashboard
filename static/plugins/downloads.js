@@ -30,17 +30,15 @@ async function render_dashboard_downloads(project, duration="7d") {
     document.getElementById('page_description').innerText = "";
     document.getElementById('page_description').appendChild(pinput);
     document.getElementById('page_title').innerText = `Download Statistics`;
-
-
     await OAuthGate(fetch_download_stats);
 }
 
-function show_download_stats(project, stats_as_json, duration="7d") {
+function show_download_stats(project, stats_as_json, duration="7d", target_uri=null) {
     if (!project || project === "") return
-
     document.getElementById('page_title').innerText = `Download Statistics for ${project}:`;
     const outer_chart_area = document.getElementById('chart_area');
     outer_chart_area.innerText = "";
+
     if (stats_as_json.success === false) {
         outer_chart_area.innerText = stats_as_json.message;
         return
@@ -63,6 +61,7 @@ function show_download_stats(project, stats_as_json, duration="7d") {
 
     const all_days = [];
     for (const [uri, data] of Object.entries(stats_as_json)) {
+        if (target_uri && target_uri.length && target_uri !== uri) continue
         downloads_as_sum += data.hits;
         bytes_as_sum += data.bytes;
         visitors_as_sum += data.hits_unique;
@@ -73,6 +72,7 @@ function show_download_stats(project, stats_as_json, duration="7d") {
     all_days.sort();
 
     for (const [uri, data] of Object.entries(stats_as_json)) {
+        if (target_uri && target_uri.length && target_uri !== uri) continue
         total_downloads_histogram[uri] = [];
         total_bytes_histogram[uri] = [];
         for (const day of all_days) {
@@ -117,13 +117,33 @@ function show_download_stats(project, stats_as_json, duration="7d") {
         total_downloads_curated[uri] = total_downloads_histogram[uri];
     }
 
-    console.log(total_downloads_curated)
+    // Drop-down selector for URIs
+    const uri_filter = document.createElement('select');
+    const uris_combined = document.createElement('option');
+    uris_combined.innerText = "(show statistics for all top URIs)";
+    uris_combined.value = "";
+    uri_filter.appendChild(uris_combined);
+    const uris_single = document.createElement('option');
+    uris_single.innerText = "Individual URIs:";
+    uris_single.disabled = true;
+    uri_filter.appendChild(uris_single);
+
+    for (const [uri, data] of Object.entries(stats_as_json)) {
+        const opt = document.createElement('option');
+        opt.innerText = `${uri} - (${data.hits.pretty()} downloads / ${data.bytes.pretty()} bytes)`;
+        opt.value = uri;
+        if (target_uri && target_uri.length && target_uri === uri) opt.selected = true;
+        uri_filter.appendChild(opt);
+    }
+    uri_filter.addEventListener('change', (ev) => { show_download_stats(project, stats_as_json, duration, ev.target.value)})
+    outer_chart_area.appendChild(uri_filter);
+
     const total_downloads = chart_bar(
         `Downloads for ${project}, past two months`,
         "",
         total_downloads_curated,
         {
-            height: "320px",
+            height: "300px",
             width: "1500px"
         },
         true,
@@ -159,7 +179,7 @@ function show_download_stats(project, stats_as_json, duration="7d") {
         "",
         total_bytes_curated,
         {
-            height: "320px",
+            height: "300px",
             width: "1500px"
         },
         true,
@@ -169,10 +189,14 @@ function show_download_stats(project, stats_as_json, duration="7d") {
 
     outer_chart_area.appendChild(total_bytes);
 
+    outer_chart_area.appendChild(document.createElement('hr'));
+
 
     const cca2_dict = {};
     const cca2_array = [];
+    const cca2_array_plain = [];  // for echarts world map
     for (const [uri, data] of Object.entries(stats_as_json)) {
+        if (target_uri && target_uri.length && target_uri !== uri) continue
         for (const [cca2, count] of Object.entries(data.cca2)) {
             cca2_dict[cca2] = (cca2_dict[cca2]||0) + count;
         }
@@ -182,9 +206,11 @@ function show_download_stats(project, stats_as_json, duration="7d") {
         for (const country of cca2_list) {
             if (country.cca2 == k) {
                 cname = country.flag + " " + country.name;
+                cca2_array.push({name: cname, value: v})
+                cca2_array_plain.push({name: country.name, value: v});
+                break
             }
         }
-        cca2_array.push({name: cname, value: v})
     }
     const cca2_array_sorted = cca2_array.slice();
     cca2_array_sorted.sort((a,b) => b.value-a.value);
@@ -199,10 +225,13 @@ function show_download_stats(project, stats_as_json, duration="7d") {
             }
         });
     }
-    const donut_countries = chart_pie("Downloads by Country", "", cca2_array_sorted, {width: "720px", height: "340px"}, donut=true);
-    donut_countries.style.maxWidth = "700px";
-    donut_countries.style.height = "340px";
+    const donut_countries = chart_pie("Downloads by Country", "", cca2_array_sorted, {width: "720px", height: "400px"}, donut=true);
+    donut_countries.style.maxWidth = "600px";
+    donut_countries.style.height = "400px";
     outer_chart_area.appendChild(donut_countries);
+
+    const wmap = chart_map("Downloads by Country", "", cca2_array_plain);
+    outer_chart_area.appendChild(wmap);
 
     let total_hits = 0;
 
@@ -220,7 +249,7 @@ function show_download_stats(project, stats_as_json, duration="7d") {
     const infotable = chart_table("At a glance", null, dlinfotable);
     outer_chart_area.appendChild(infotable);
 
-    outer_chart_area.appendChild(document.createElement('hr'));
+
 
     return
 
