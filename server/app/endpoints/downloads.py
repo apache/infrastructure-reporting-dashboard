@@ -152,7 +152,7 @@ async def process(form_data):
                             cca2_count = ccaentry["doc_count"]
                             if cca2 and cca2 != "-":
                                 cca2_hits[cca2] = cca2_hits.get(cca2, 0) + cca2_count
-                            daily_data.append([day_ts, nh_daily, visits_unique, nb_daily])
+                        daily_data.append([day_ts, nh_daily, visits_unique, nb_daily])
 
                     # The prevailing agg (most hits or most traffic) wins
                     if no_bytes > downloaded_artifacts[url]["bytes"]:
