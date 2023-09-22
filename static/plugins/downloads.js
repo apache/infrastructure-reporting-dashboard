@@ -35,8 +35,10 @@ async function render_dashboard_downloads(project, duration="7d") {
     await OAuthGate(fetch_download_stats);
 }
 
-function show_download_stats(project, stats_as_json, duration="7d", target_uri=null) {
+function show_download_stats(project, stats_as_json, duration="7d", target_uri="") {
     if (!project || project === "") return
+    if (target_uri === "") target_uri = null;
+
     document.getElementById('page_title').innerText = `Download Statistics for ${project}:`;
     const outer_chart_area = document.getElementById('chart_area');
     outer_chart_area.innerText = "";
@@ -44,6 +46,11 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri=n
     if (stats_as_json.success === false) {
         outer_chart_area.innerText = stats_as_json.message;
         return
+    }
+
+    const current_stats = {};
+    for (const [uri, data] of Object.entries(stats_as_json)) {
+        if (!target_uri || target_uri === uri) current_stats[uri] = data;
     }
 
     const total_downloads_histogram = {};
@@ -54,7 +61,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri=n
     const total_bytes_curated = {};
     const total_bytes_histogram_summed = {};
     const total_bytes_sum = {};
-    const uris = Object.keys(stats_as_json);
+    const uris = Object.keys(current_stats);
 
     let downloads_as_sum = 0;
     let bytes_as_sum = 0;
@@ -62,8 +69,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri=n
 
 
     const all_days = [];
-    for (const [uri, data] of Object.entries(stats_as_json)) {
-        if (target_uri && target_uri.length && target_uri !== uri) continue
+    for (const [uri, data] of Object.entries(current_stats)) {
         downloads_as_sum += data.hits;
         bytes_as_sum += data.bytes;
         visitors_as_sum += data.hits_unique;
@@ -73,8 +79,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri=n
     }
     all_days.sort();
 
-    for (const [uri, data] of Object.entries(stats_as_json)) {
-        if (target_uri && target_uri.length && target_uri !== uri) continue
+    for (const [uri, data] of Object.entries(current_stats)) {
         total_downloads_histogram[uri] = [];
         total_bytes_histogram[uri] = [];
         for (const day of all_days) {
@@ -101,19 +106,21 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri=n
 
     uris.sort((a,b) => total_downloads_sum[b] - total_downloads_sum[a]);
     const uris_top_downloads = uris.slice(0, 10);
-    total_downloads_curated["Other files"] = [];
-    for (const day of all_days) {
-        let other_count = 0;
-        for (const [uri, entry] of Object.entries(total_downloads_histogram)) {
-            if (!uris_top_downloads.includes(uri)) { // Don't include top 10
-                for (const el of entry) {
-                    if (el[0] === day) {
-                        other_count += el[1];
+    if (!target_uri) {
+        total_downloads_curated["Other files"] = [];
+        for (const day of all_days) {
+            let other_count = 0;
+            for (const [uri, entry] of Object.entries(total_downloads_histogram)) {
+                if (!uris_top_downloads.includes(uri)) { // Don't include top 10
+                    for (const el of entry) {
+                        if (el[0] === day) {
+                            other_count += el[1];
+                        }
                     }
                 }
             }
+            total_downloads_curated["Other files"].push([day, other_count]);
         }
-        total_downloads_curated["Other files"].push([day, other_count]);
     }
     for (const uri of uris_top_downloads) {
         total_downloads_curated[uri] = total_downloads_histogram[uri];
@@ -150,7 +157,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri=n
         },
         true,
         true,
-        {widelegend: true}
+        {widelegend: target_uri ? false : true}
     );
 
     outer_chart_area.appendChild(total_downloads);
@@ -158,19 +165,21 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri=n
 
     uris.sort((a,b) => total_bytes_sum[b] - total_bytes_sum[a]);
     const uris_top_bytes = uris.slice(0, 10);
-    total_bytes_curated["Other files"] = [];
-    for (const day of all_days) {
-        let other_count = 0;
-        for (const [uri, entry] of Object.entries(total_bytes_histogram)) {
-            if (!uris_top_bytes.includes(uri)) { // Don't include top 10
-                for (const el of entry) {
-                    if (el[0] === day) {
-                        other_count += el[1];
+    if (!target_uri) {
+        total_bytes_curated["Other files"] = [];
+        for (const day of all_days) {
+            let other_count = 0;
+            for (const [uri, entry] of Object.entries(total_bytes_histogram)) {
+                if (!uris_top_bytes.includes(uri)) { // Don't include top 10
+                    for (const el of entry) {
+                        if (el[0] === day) {
+                            other_count += el[1];
+                        }
                     }
                 }
             }
+            total_bytes_curated["Other files"].push([day, other_count]);
         }
-        total_bytes_curated["Other files"].push([day, other_count]);
     }
     for (const uri of uris_top_bytes) {
         total_bytes_curated[uri] = total_bytes_histogram[uri];
@@ -186,7 +195,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri=n
         },
         true,
         true,
-        {binary: true, widelegend: true}
+        {binrary: true, widelegend: target_uri ? false : true}
     );
 
     outer_chart_area.appendChild(total_bytes);
@@ -197,8 +206,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri=n
     const cca2_dict = {};
     const cca2_array = [];
     const cca2_array_plain = [];  // for echarts world map
-    for (const [uri, data] of Object.entries(stats_as_json)) {
-        if (target_uri && target_uri.length && target_uri !== uri) continue
+    for (const [uri, data] of Object.entries(current_stats)) {
         for (const [cca2, count] of Object.entries(data.cca2)) {
             cca2_dict[cca2] = (cca2_dict[cca2]||0) + count;
         }
