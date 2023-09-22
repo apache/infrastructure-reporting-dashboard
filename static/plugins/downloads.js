@@ -148,7 +148,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
     outer_chart_area.appendChild(uri_filter);
 
     const total_downloads = chart_bar(
-        `Downloads for ${project}, past two months`,
+        `Downloads, past two months`,
         "",
         total_downloads_curated,
         {
@@ -186,7 +186,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
     }
 
     const total_bytes = chart_bar(
-        `Downloads for ${project}, past two months, by traffic volume`,
+        `Downloads, past two months, by traffic volume`,
         "",
         total_bytes_curated,
         {
