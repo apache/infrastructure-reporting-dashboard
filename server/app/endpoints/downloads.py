@@ -63,8 +63,15 @@ downloads_data_cache = []
 
 @asfuid.session_required
 async def process(form_data):
-    duration = form_data.get("duration", "7d")
     project = form_data.get("project", "httpd")
+    duration = form_data.get("duration", 7)
+    if isinstance(duration, str):
+        if duration.endswith("d"):
+            duration = duration[:-1]
+        try:
+            duration = int(duration)
+        except ValueError:
+            return {"success": False, "message": "Invalid duration window! Please specify a whole number of days"}
 
     downloaded_artifacts = {}
 
@@ -81,7 +88,7 @@ async def process(form_data):
     if not cache_found:
         for provider, field_names in FIELD_NAMES.items():
             q = elasticsearch_dsl.Search(using=es_client)
-            q = q.filter("range", **{field_names["timestamp"]: {"gte": f"now-{duration}"}})
+            q = q.filter("range", **{field_names["timestamp"]: {"gte": f"now-{duration}d"}})
             q = q.filter("match", **{field_names["request_method"]: "GET"})
             q = q.filter("range", bytes={"gt": 5000})
             q = q.filter("match", **{field_names["uri"]: project})
