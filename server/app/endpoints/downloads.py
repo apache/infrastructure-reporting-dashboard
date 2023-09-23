@@ -90,9 +90,9 @@ async def process(form_data):
             q = elasticsearch_dsl.Search(using=es_client)
             q = q.filter("range", **{field_names["timestamp"]: {"gte": f"now-{duration}d"}})
             q = q.filter("match", **{field_names["request_method"]: "GET"})
-            q = q.filter("range", bytes={"gt": 5000})
-            q = q.filter("match", **{field_names["uri"]: project})
+            q = q.filter("range", bytes={"gt": 5000}) # This eliminates hashes and (most?) sigs
             q = q.filter("prefix", **{field_names["uri"] + ".keyword": f"/{project}/"})
+            q = q.filter("regexp", **{field_names['uri'] + ".keyword": r".*\.[a-z0-9]+"}) # all artifacts have an extension
             q = q.filter("match", **{field_names["vhost"]: field_names["_vhost_"]})
 
             q.aggs.bucket(
