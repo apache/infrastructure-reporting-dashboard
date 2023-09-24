@@ -24,7 +24,7 @@ async function render_dashboard_downloads(project, duration="7d") {
 
 
     const pinput = document.createElement('input');
-    pinput.placeholder = "Type a project name to search for...";
+    pinput.placeholder = "project or incubator/podling";
     pinput.addEventListener('keyup', (ev) => { if (ev.key === "Enter"){
         location.hash = `#downloads&project=${ev.target.value}`;
         fetch_download_stats();
