@@ -96,82 +96,59 @@ async def process(form_data):
             q = q.filter("match", **{field_names["vhost"]: field_names["_vhost_"]})
 
             q.aggs.bucket(
-                "most_downloads", elasticsearch_dsl.A("terms", field=f"{field_names['uri']}.keyword", size=MAX_HITS)
-            ).bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]).metric(
+                "statistics", elasticsearch_dsl.A("terms", field=f"{field_names['uri']}.keyword", size=MAX_HITS)
+            ).bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]
+            ).metric(
                 "bytes_sum", "sum", field=field_names["bytes"]
             ).metric(
                 "unique_ips", "cardinality", field="client_ip.keyword"
             ).metric(
                 "cca2", "terms", field=field_names["geo_country"] + ".keyword"
-            ).pipeline(
-                "product_by_unique", "bucket_sort", sort=[{"unique_ips": "desc"}]
-            )
-
-            q.aggs.bucket(
-                "most_traffic", elasticsearch_dsl.A("terms", field=f"{field_names['uri']}.keyword", size=MAX_HITS)
-            ).bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]).metric(
-                "bytes_sum", "sum", field=field_names["bytes"]
-            ).metric(
-                "unique_ips", "cardinality", field="client_ip.keyword"
-            ).metric(
-                "cca2", "terms", field=field_names["geo_country"] + ".keyword"
-            ).pipeline(
-                "product_by_sum", "bucket_sort", sort=[{"bytes_sum": "desc"}]
             )
 
             resp = await es_client.search(index=f"{provider}-*", body=q.to_dict(), size=0, timeout="60s")
             if "aggregations" not in resp:  # Skip this provider if no data is available
                 continue
 
-            for methodology in (
-                "most_downloads",
-                "most_traffic",
-            ):
-                for entry in resp["aggregations"][methodology]["buckets"]:
-                    url = re.sub(r"/+", "/", entry["key"])
-                    if "." not in url or url.endswith("/") or url.endswith("KEYS"):  # Never count KEYS or non-files
-                        continue
-                    if url not in downloaded_artifacts:
-                        downloaded_artifacts[url] = {
-                            "bytes": 0,
-                            "hits": 0,
-                            "hits_unique": 0,
-                            "cca2": {},
-                            "daily_stats": {},
-                        }
-                    no_bytes = 0
-                    no_hits = 0
-                    no_hits_unique = 0
-                    cca2_hits = {}
-                    daily_data = []
+            for entry in resp["aggregations"]['statistics']["buckets"]:
+                url = re.sub(r"/+", "/", entry["key"])
+                if "." not in url or url.endswith("/") or url.endswith("KEYS"):  # Never count KEYS or non-files
+                    continue
+                if url not in downloaded_artifacts:
+                    downloaded_artifacts[url] = {
+                        "bytes": 0,
+                        "hits": 0,
+                        "hits_unique": 0,
+                        "cca2": {},
+                        "daily_stats": {},
+                    }
+                no_bytes = 0
+                no_hits = 0
+                no_hits_unique = 0
+                cca2_hits = {}
+                daily_data = []
 
-                    for daily_entry in entry["per_day"]["buckets"]:
-                        day_ts = int(daily_entry["key"] / 1000)
-                        nb_daily = int(daily_entry["bytes_sum"]["value"])
-                        nh_daily = int(daily_entry["doc_count"])
-                        no_bytes += nb_daily
+                for daily_entry in entry["per_day"]["buckets"]:
+                    day_ts = int(daily_entry["key"] / 1000)
+                    nb_daily = int(daily_entry["bytes_sum"]["value"])
+                    nh_daily = int(daily_entry["doc_count"])
+                    no_bytes += nb_daily
 
-                        visits_unique = int(daily_entry["unique_ips"]["value"])
-                        no_hits += nh_daily
-                        no_hits_unique += visits_unique
-                        for ccaentry in daily_entry["cca2"]["buckets"]:
-                            cca2 = ccaentry["key"]
-                            cca2_count = ccaentry["doc_count"]
-                            if cca2 and cca2 != "-":
-                                cca2_hits[cca2] = cca2_hits.get(cca2, 0) + cca2_count
-                        daily_data.append([day_ts, nh_daily, visits_unique, nb_daily])
+                    visits_unique = int(daily_entry["unique_ips"]["value"])
+                    no_hits += nh_daily
+                    no_hits_unique += visits_unique
+                    for ccaentry in daily_entry["cca2"]["buckets"]:
+                        cca2 = ccaentry["key"]
+                        cca2_count = ccaentry["doc_count"]
+                        if cca2 and cca2 != "-":
+                            cca2_hits[cca2] = cca2_hits.get(cca2, 0) + cca2_count
+                    daily_data.append([day_ts, nh_daily, visits_unique, nb_daily])
 
-                    # The prevailing agg (most hits or most traffic) wins
-                    if no_bytes > downloaded_artifacts[url]["bytes"]:
-                        downloaded_artifacts[url]["bytes"] += no_bytes
-                        downloaded_artifacts[url]["daily_stats"] = daily_data
-                    if no_hits > downloaded_artifacts[url]["hits"]:
-                        downloaded_artifacts[url]["hits"] += no_hits
-                        downloaded_artifacts[url]["daily_stats"] = daily_data
-                    if no_hits_unique > downloaded_artifacts[url]["hits_unique"]:
-                        downloaded_artifacts[url]["hits_unique"] += no_hits_unique
-                    if sum([x for x in cca2_hits.values()]) > sum([x for x in downloaded_artifacts[url]["cca2"].values()]):
-                        downloaded_artifacts[url]["cca2"] = cca2_hits
+                downloaded_artifacts[url]["bytes"] += no_bytes
+                downloaded_artifacts[url]["daily_stats"] = daily_data
+                downloaded_artifacts[url]["hits"] += no_hits
+                downloaded_artifacts[url]["hits_unique"] += no_hits_unique
+                downloaded_artifacts[url]["cca2"] = cca2_hits
 
         # Set cache data and cull old cache list if needed
         new_cache_list = [item for item in downloads_data_cache if item[1] >= cache_timeout_ts]
