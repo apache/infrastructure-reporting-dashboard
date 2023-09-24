@@ -253,7 +253,8 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
         "Total downloads": downloads_as_sum.pretty(),
         "Total bytes transferred": bytes_as_sum.pretty(),
         "Unique user count": visitors_as_sum.pretty(),
-        "Raw data": jsonlink
+        "Raw data": jsonlink,
+        "Daily stats entries": '[timestamp, downloads, unique ips, bytes]'
     };
 
     const infotable = chart_table("At a glance", null, dlinfotable);
