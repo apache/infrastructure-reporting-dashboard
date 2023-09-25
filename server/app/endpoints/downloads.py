@@ -16,7 +16,6 @@
 # specific language governing permissions and limitations
 # under the License.
 """ASF Infrastructure Reporting Dashboard"""
-import functools
 
 """Handler for download stats - ported from https://github.com/apache/infrastructure-dlstats"""
 import quart
