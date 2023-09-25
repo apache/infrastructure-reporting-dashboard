@@ -57,6 +57,11 @@ if hasattr(config.reporting, "downloads"):  # If prod...
     dataurl = config.reporting.downloads["dataurl"]
 
 es_client = elasticsearch.AsyncElasticsearch(hosts=[dataurl], timeout=45)
+
+# WARNING: whilst operations on lists are generally thread-safe, this cache is not,
+# because updating the cache requires several operations which are not currently protected by a lock.
+# However, it appears that access to instances of this code are single-threaded by hypercorn,
+# so the lack of thread safety should not be a problem.
 downloads_data_cache = []
 
 
