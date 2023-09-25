@@ -177,6 +177,10 @@ async def process(form_data):
         new_cache_list = [item for item in downloads_data_cache if item[1] >= cache_timeout_ts]
         downloads_data_cache.clear()
         downloads_data_cache.extend(new_cache_list)
+        # Make sure there is room to add another entry
+        # entries are added in date order, so [0] is the oldest
+        while len(downloads_data_cache) >= DOWNLOADS_CACHE_ITEMS:
+            del downloads_data_cache[0]
         downloads_data_cache.append((cache_key, time.time(), downloaded_artifacts))
 
     return downloaded_artifacts or {"success": False, "message": "No results found"}
