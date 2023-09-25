@@ -32,22 +32,22 @@ DOWNLOADS_CACHE_TTL = 7200   # Only cache items for 2 hours
 
 # Different indices have different field names, account for it here:
 FIELD_NAMES = {
-    "fastly": {
+    "fastly": { # the index prefix
         "geo_country": "geo_country_code",
         "bytes": "bytes",
         "vhost": "vhost",
         "uri": "url",
         "timestamp": "timestamp",
-        "_vhost_": "dlcdn.apache.org",
+        "_vhost_": "dlcdn.apache.org", # This is a variable field value, not a name
         "request_method": "request",
     },
-    "loggy": {
+    "loggy": { # the index prefix
         "geo_country": "geo_country",
         "bytes": "bytes",
         "vhost": "vhost",
         "uri": "uri",
         "timestamp": "@timestamp",
-        "_vhost_": "downloads.apache.org",
+        "_vhost_": "downloads.apache.org", # This is a variable field value, not a name
         "request_method": "request_method",
     },
 }
