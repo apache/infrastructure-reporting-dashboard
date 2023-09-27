@@ -40,6 +40,7 @@ FIELD_NAMES = {
         "timestamp": "timestamp",
         "_vhost_": "dlcdn.apache.org", # This is a variable field value, not a name
         "request_method": "request",
+        "useragent": "request_user_agent",
     },
     "loggy": { # the index prefix
         "geo_country": "geo_country",
@@ -49,6 +50,7 @@ FIELD_NAMES = {
         "timestamp": "@timestamp",
         "_vhost_": "downloads.apache.org", # This is a variable field value, not a name
         "request_method": "request_method",
+        "useragent": "useragent",
     },
 }
 
@@ -69,6 +71,7 @@ downloads_data_cache = []
 async def process(form_data):
     project = form_data.get("project", "httpd")
     duration = form_data.get("duration", 7)
+    filters = form_data.get("filters", "empty_ua") # Various search filters
     if isinstance(duration, str):
         if duration.endswith("d"):
             duration = duration[:-1]
@@ -98,6 +101,10 @@ async def process(form_data):
             q = q.filter("match", **{field_names["uri"]: project})
             q = q.filter("prefix", **{field_names["uri"] + ".keyword": f"/{project}/"})
             q = q.filter("match", **{field_names["vhost"]: field_names["_vhost_"]})
+
+            # Various standard filters for weeding out bogus requests
+            if "empty_ua" in filters:  # Empty User-Agent header, usually automation gone wrong
+                q = q.exclude("terms", **{field_names["useragent"]+".keyword": [""]})
 
             q.aggs.bucket(
                 "most_downloads", elasticsearch_dsl.A("terms", field=f"{field_names['uri']}.keyword", size=MAX_HITS)
