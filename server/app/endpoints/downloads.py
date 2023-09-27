@@ -71,7 +71,7 @@ downloads_data_cache = []
 async def process(form_data):
     project = form_data.get("project", "httpd")    # Project/podling to fetch stats for
     duration = form_data.get("duration", 7)        # Timespan to search (in whole days)
-    filters = form_data.get("filters", "empty_ua") # Various search filters
+    filters = form_data.get("filters", "empty_ua,no_query") # Various search filters
     if isinstance(duration, str):
         if duration.endswith("d"):
             duration = duration[:-1]
@@ -105,6 +105,9 @@ async def process(form_data):
             # Various standard filters for weeding out bogus requests
             if "empty_ua" in filters:  # Empty User-Agent header, usually automation gone wrong
                 q = q.exclude("terms", **{field_names["useragent"]+".keyword": [""]})
+            # TODO: Make this not extremely slow. For now, we'll filter in post.
+            #if "no_query" in filters:  # Don't show results with query strings in them
+            #    q = q.exclude("wildcard", **{field_names["uri"]+".keyword": "*="})
 
             # Bucket sorting by most downloaded items
             q.aggs.bucket(
@@ -141,6 +144,9 @@ async def process(form_data):
                 for entry in resp["aggregations"][methodology]["buckets"]:
                     # url, shortened = /incubator/ponymail/foo.tar.gz -> foo.tar.gz
                     url = re.sub(r"/+", "/", entry["key"]).replace(f"/{project}/", "", 1)
+                    # TODO: Address in OpenSearch later on...
+                    if "no_query" in filters and "?" in url:
+                        continue
                     if "." not in url or url.endswith("/") or url.endswith("KEYS"):  # Never count KEYS or non-files
                         continue
                     if url not in downloaded_artifacts:
