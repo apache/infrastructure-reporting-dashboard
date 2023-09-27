@@ -69,8 +69,8 @@ downloads_data_cache = []
 
 @asfuid.session_required
 async def process(form_data):
-    project = form_data.get("project", "httpd")
-    duration = form_data.get("duration", 7)
+    project = form_data.get("project", "httpd")    # Project/podling to fetch stats for
+    duration = form_data.get("duration", 7)        # Timespan to search (in whole days)
     filters = form_data.get("filters", "empty_ua") # Various search filters
     if isinstance(duration, str):
         if duration.endswith("d"):
