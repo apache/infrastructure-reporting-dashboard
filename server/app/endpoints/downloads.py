@@ -106,6 +106,7 @@ async def process(form_data):
             if "empty_ua" in filters:  # Empty User-Agent header, usually automation gone wrong
                 q = q.exclude("terms", **{field_names["useragent"]+".keyword": [""]})
 
+            # Bucket sorting by most downloaded items
             q.aggs.bucket(
                 "most_downloads", elasticsearch_dsl.A("terms", field=f"{field_names['uri']}.keyword", size=MAX_HITS)
             ).bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]).metric(
@@ -114,20 +115,19 @@ async def process(form_data):
                 "unique_ips", "cardinality", field="client_ip.keyword"
             ).metric(
                 "cca2", "terms", field=field_names["geo_country"] + ".keyword"
-            ).pipeline(
-                "product_by_unique", "bucket_sort", sort=[{"unique_ips": "desc"}]
             )
 
+            # Bucket sorting by most bytes downloaded (may differ from most downloads top 50!)
             q.aggs.bucket(
-                "most_traffic", elasticsearch_dsl.A("terms", field=f"{field_names['uri']}.keyword", size=MAX_HITS)
+                "most_traffic", elasticsearch_dsl.A("terms", field=f"{field_names['uri']}.keyword", size=MAX_HITS, order={"bytes_sum": "desc"})
+            ).metric(
+                "bytes_sum", "sum", field=field_names["bytes"]
             ).bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]).metric(
                 "bytes_sum", "sum", field=field_names["bytes"]
             ).metric(
                 "unique_ips", "cardinality", field="client_ip.keyword"
             ).metric(
                 "cca2", "terms", field=field_names["geo_country"] + ".keyword"
-            ).pipeline(
-                "product_by_sum", "bucket_sort", sort=[{"bytes_sum": "desc"}]
             )
 
             resp = await es_client.search(index=f"{provider}-*", body=q.to_dict(), size=0, timeout="60s")
