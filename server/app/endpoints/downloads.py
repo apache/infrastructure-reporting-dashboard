@@ -139,7 +139,8 @@ async def process(form_data):
                 "most_traffic",
             ):
                 for entry in resp["aggregations"][methodology]["buckets"]:
-                    url = re.sub(r"/+", "/", entry["key"])
+                    # url, shortened = /incubator/ponymail/foo.tar.gz -> foo.tar.gz
+                    url = re.sub(r"/+", "/", entry["key"]).replace(f"/{project}/", "", 1)
                     if "." not in url or url.endswith("/") or url.endswith("KEYS"):  # Never count KEYS or non-files
                         continue
                     if url not in downloaded_artifacts:
