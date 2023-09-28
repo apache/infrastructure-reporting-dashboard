@@ -33,7 +33,7 @@ function dict_to_pie(dict, limit=10) {
     if (keys.length > limit) {
         pie_array.push({name: "Other", value: others});
     }
-    return pie_array
+    return pie_array.sort((a,b) => b.value - a.value)
 }
 
 async function render_dashboard_downloads(project, duration="7d") {
