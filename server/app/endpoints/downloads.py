@@ -37,6 +37,10 @@ INTERNAL_AGENTS = {
     "NSIS (plugin)": ("NSIS_Inetc", ),
     "Transmission": ("Transmission/", ),
     "Free Download Manager": ("FDM", ),
+    "Patch My PC Client": ("Patch My PC Publishing Service", ),
+    "Artifactory": ("Artifactory", ),
+    "Scoop/Shovel": ("Scoop/", "Shovel/", ),
+    "BigFix": ("BigFix", ),
 }
 
 # Different indices have different field names, account for it here:
