@@ -23,9 +23,7 @@ async function fetch_download_stats(prefs) {
 function dict_to_pie(dict, limit=10) {
     const keys = Object.keys(dict);
     keys.sort((a,b) => { return dict[b] - dict[a]});
-
     const keys_top = keys.slice(0,limit);
-
     const pie_array = [];
     let others = 0;
     for (const key of keys) {
@@ -109,7 +107,6 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
             total_by_browser[browser] = (total_by_browser[browser]||0) + val;
             total_by_system[os] = (total_by_system[os]||0) + val;
         }
-        dict_to_pie(total_by_browser);
         for (const day of all_days) {
             let found_day = false;
             for (const entry of data.daily_stats) {
