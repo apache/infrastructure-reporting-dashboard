@@ -75,7 +75,8 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
         note.style.color = "orange";
         document.getElementById('page_description').appendChild(note);
     }
-    for (const [uri, data] of Object.entries(stats_as_json)) {
+    for (let [uri, data] of Object.entries(stats_as_json)) {
+        if (uri.length > 72) uri = uri.substring(0, 34) + "[...]" + uri.substring(uri.length-34, uri.length);
         if (!target_uri || target_uri === uri) current_stats[uri] = data;
     }
 
@@ -171,8 +172,9 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
     uris_single.disabled = true;
     uri_filter.appendChild(uris_single);
 
-    for (const [uri, data] of Object.entries(stats_as_json)) {
+    for (let [uri, data] of Object.entries(stats_as_json)) {
         const opt = document.createElement('option');
+        if (uri.length > 72) uri = uri.substring(0, 34) + "[...]" + uri.substring(uri.length-34, uri.length);
         opt.innerText = `${uri} - (${data.hits.pretty()} downloads / ${data.bytes.pretty()} bytes)`;
         opt.value = uri;
         if (target_uri && target_uri.length && target_uri === uri) opt.selected = true;
