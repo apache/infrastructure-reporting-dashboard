@@ -112,7 +112,8 @@ async def process(form_data):
             # Bucket sorting by most downloaded items
             q.aggs.bucket(
                 "most_downloads", elasticsearch_dsl.A("terms", field=f"{field_names['uri']}.keyword", size=MAX_HITS)
-            ).bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]).metric(
+            ).bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]
+            ).metric(
                 "bytes_sum", "sum", field=field_names["bytes"]
             ).metric(
                 "unique_ips", "cardinality", field="client_ip.keyword"
@@ -125,7 +126,8 @@ async def process(form_data):
                 "most_traffic", elasticsearch_dsl.A("terms", field=f"{field_names['uri']}.keyword", size=MAX_HITS, order={"bytes_sum": "desc"})
             ).metric(
                 "bytes_sum", "sum", field=field_names["bytes"]
-            ).bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]).metric(
+            ).bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]
+            ).metric(
                 "bytes_sum", "sum", field=field_names["bytes"]
             ).metric(
                 "unique_ips", "cardinality", field="client_ip.keyword"
