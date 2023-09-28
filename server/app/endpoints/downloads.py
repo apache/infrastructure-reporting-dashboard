@@ -27,8 +27,8 @@ import re
 import time
 import ua_parser.user_agent_parser
 
-MAX_HITS = 50  # Max number of artifacts to track in a single search
-MAX_HITS_UA = 75  # Max number of user agents to collate
+MAX_HITS = 60  # Max number of artifacts to track in a single search
+MAX_HITS_UA = 60  # Max number of user agents to collate
 DOWNLOADS_CACHE_ITEMS = 200  # Keep the 200 latest search results in cache. 200 results is ~50MB
 DOWNLOADS_CACHE_TTL = 7200   # Only cache items for 2 hours
 
@@ -126,12 +126,13 @@ async def make_query(provider, field_names, project, duration, filters, max_hits
         return resp
     except elasticsearch.TransportError as e:
         # If too many buckets for us to handle, downscale the UA search
-        print(f"Too many buckets for {project}, downscaling query")
         if isinstance(e.info, dict) and 'too_many_buckets_exception' in e.info["error"].get("caused_by", {}).get("type", ""):
-            max_ua /= 2
+            max_ua = int(max_ua*0.67)
+            max_hits = int(max_hits*0.67)
+            print(f"Too many buckets for {project}, downscaling query by 33%")
             if max_ua > 2:
                 return await make_query(provider, field_names, project, duration, filters, max_hits, max_ua, True)
-    return
+    return {"downscaled": downscaled}
 
 
 
@@ -161,10 +162,13 @@ async def process(form_data):
             break
 
     if not cache_found:
+        downscaled = False
         for provider, field_names in FIELD_NAMES.items():
             resp = await make_query(provider, field_names, project, duration, filters)
             if "aggregations" not in resp:  # Skip this provider if no data is available
                 continue
+            if resp.get("downscaled"):  # Too many damn buckets
+                downscaled = True
             for methodology in (
                 "most_downloads",
                 "most_traffic",
@@ -236,7 +240,10 @@ async def process(form_data):
                         downloaded_artifacts[url]["hits_unique"] += no_hits_unique
                     if sum([x for x in cca2_hits.values()]) > sum([x for x in downloaded_artifacts[url]["cca2"].values()]):
                         downloaded_artifacts[url]["cca2"] = cca2_hits
-
+        # Ensure all entries are properly marked if query was downscaled
+        if downscaled:
+            for key, val in downloaded_artifacts.items():
+                val["downscaled"] = True
         # Set cache data and cull old cache list if needed
         new_cache_list = [item for item in downloads_data_cache if item[1] >= cache_timeout_ts]
         downloads_data_cache.clear()
