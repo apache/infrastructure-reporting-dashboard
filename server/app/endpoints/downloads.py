@@ -75,6 +75,65 @@ es_client = elasticsearch.AsyncElasticsearch(hosts=[dataurl], timeout=45)
 # so the lack of thread safety should not be a problem.
 downloads_data_cache = []
 
+async def make_query(provider, field_names, project, duration, filters, max_hits=MAX_HITS, max_ua=MAX_HITS_UA, downscaled=False):
+    q = elasticsearch_dsl.Search(using=es_client)
+    q = q.filter("range", **{field_names["timestamp"]: {"gte": f"now-{duration}d"}})
+    q = q.filter("match", **{field_names["request_method"]: "GET"})
+    q = q.filter("range", bytes={"gt": 5000}) # this filters out hashes and (most?) sigs
+    q = q.filter("prefix", **{field_names["uri"] + ".keyword": f"/{project}/"})
+    q = q.filter("match", **{field_names["vhost"]: field_names["_vhost_"]})
+
+    # Various standard filters for weeding out bogus requests
+    if "empty_ua" in filters:  # Empty User-Agent header, usually automation gone wrong
+        q = q.exclude("terms", **{field_names["useragent"]+".keyword": [""]})
+    # TODO: Make this not extremely slow. For now, we'll filter in post.
+    #if "no_query" in filters:  # Don't show results with query strings in them
+    #    q = q.exclude("wildcard", **{field_names["uri"]+".keyword": "*="})
+
+    # Bucket sorting by most downloaded items
+    main_bucket = q.aggs.bucket(
+        "most_downloads", elasticsearch_dsl.A("terms", field=f"{field_names['uri']}.keyword", size=max_hits)
+    )
+    main_bucket.metric("useragents", "terms", field=field_names["useragent"]+".keyword", size=max_ua)
+    main_bucket.bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]
+                       ).metric(
+        "bytes_sum", "sum", field=field_names["bytes"]
+    ).metric(
+        "unique_ips", "cardinality", field="client_ip.keyword"
+    ).metric(
+        "cca2", "terms", field=field_names["geo_country"] + ".keyword"
+    )
+
+    # Bucket sorting by most bytes downloaded (may differ from most downloads top 50!)
+    main_bucket = q.aggs.bucket(
+        "most_traffic", elasticsearch_dsl.A("terms", field=f"{field_names['uri']}.keyword", size=max_hits, order={"bytes_sum": "desc"})
+    )
+    main_bucket.metric("useragents", "terms", field=field_names["useragent"]+".keyword", size=max_ua)
+    main_bucket.metric(
+        "bytes_sum", "sum", field=field_names["bytes"]
+    ).bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]
+             ).metric(
+        "bytes_sum", "sum", field=field_names["bytes"]
+    ).metric(
+        "unique_ips", "cardinality", field="client_ip.keyword"
+    ).metric(
+        "cca2", "terms", field=field_names["geo_country"] + ".keyword"
+    )
+    try:
+        resp = await es_client.search(index=f"{provider}-*", body=q.to_dict(), size=0, timeout="60s")
+        if downscaled and resp:
+            resp["downscaled"] = True
+        return resp
+    except elasticsearch.TransportError as e:
+        # If too many buckets for us to handle, downscale the UA search
+        print(f"Too many buckets for {project}, downscaling query")
+        if isinstance(e.info, dict) and 'too_many_buckets_exception' in e.info["error"].get("caused_by", {}).get("type", ""):
+            max_ua /= 2
+            if max_ua > 2:
+                return await make_query(provider, field_names, project, duration, filters, max_hits, max_ua, True)
+    return
+
+
 
 @asfuid.session_required
 async def process(form_data):
@@ -103,54 +162,9 @@ async def process(form_data):
 
     if not cache_found:
         for provider, field_names in FIELD_NAMES.items():
-            q = elasticsearch_dsl.Search(using=es_client)
-            q = q.filter("range", **{field_names["timestamp"]: {"gte": f"now-{duration}d"}})
-            q = q.filter("match", **{field_names["request_method"]: "GET"})
-            q = q.filter("range", bytes={"gt": 5000}) # this filters out hashes and (most?) sigs
-            q = q.filter("prefix", **{field_names["uri"] + ".keyword": f"/{project}/"})
-            q = q.filter("match", **{field_names["vhost"]: field_names["_vhost_"]})
-
-            # Various standard filters for weeding out bogus requests
-            if "empty_ua" in filters:  # Empty User-Agent header, usually automation gone wrong
-                q = q.exclude("terms", **{field_names["useragent"]+".keyword": [""]})
-            # TODO: Make this not extremely slow. For now, we'll filter in post.
-            #if "no_query" in filters:  # Don't show results with query strings in them
-            #    q = q.exclude("wildcard", **{field_names["uri"]+".keyword": "*="})
-
-            # Bucket sorting by most downloaded items
-            q.aggs.bucket(
-                "most_downloads", elasticsearch_dsl.A("terms", field=f"{field_names['uri']}.keyword", size=MAX_HITS)
-            ).metric(
-                "useragents", "terms", field=field_names["useragent"]+".keyword", size=MAX_HITS_UA
-            ).bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]
-            ).metric(
-                "bytes_sum", "sum", field=field_names["bytes"]
-            ).metric(
-                "unique_ips", "cardinality", field="client_ip.keyword"
-            ).metric(
-                "cca2", "terms", field=field_names["geo_country"] + ".keyword"
-            )
-
-            # Bucket sorting by most bytes downloaded (may differ from most downloads top 50!)
-            q.aggs.bucket(
-                "most_traffic", elasticsearch_dsl.A("terms", field=f"{field_names['uri']}.keyword", size=MAX_HITS, order={"bytes_sum": "desc"})
-            ).metric(
-                "bytes_sum", "sum", field=field_names["bytes"]
-            ).metric(
-                "useragents", "terms", field=field_names["useragent"]+".keyword", size=MAX_HITS_UA
-            ).bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]
-            ).metric(
-                "bytes_sum", "sum", field=field_names["bytes"]
-            ).metric(
-                "unique_ips", "cardinality", field="client_ip.keyword"
-            ).metric(
-                "cca2", "terms", field=field_names["geo_country"] + ".keyword"
-            )
-
-            resp = await es_client.search(index=f"{provider}-*", body=q.to_dict(), size=0, timeout="60s")
+            resp = await make_query(provider, field_names, project, duration, filters)
             if "aggregations" not in resp:  # Skip this provider if no data is available
                 continue
-
             for methodology in (
                 "most_downloads",
                 "most_traffic",
@@ -190,8 +204,6 @@ async def process(form_data):
                                 if any(x in uaentry["key"] for x in ua_names):
                                     ua["user_agent"]["family"] = ua_key
                                     break
-                        if ua["user_agent"]["family"] == "Other":
-                            print(uaentry["key"])
                     for key, val in uas.items():
                         # There will be duplicate entries here, so we are going to go for the highest count found for each URL
                         downloaded_artifacts[url]["useragents"][key] = max(downloaded_artifacts[url]["useragents"].get(key, 0), val)
