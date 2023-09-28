@@ -229,7 +229,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
         },
         true,
         true,
-        {binrary: true, widelegend: target_uri ? false : true}
+        {binary: true, widelegend: target_uri ? false : true}
     );
 
     outer_chart_area.appendChild(total_bytes);
