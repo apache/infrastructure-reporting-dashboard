@@ -32,6 +32,13 @@ MAX_HITS_UA = 75  # Max number of user agents to collate
 DOWNLOADS_CACHE_ITEMS = 200  # Keep the 200 latest search results in cache. 200 results is ~50MB
 DOWNLOADS_CACHE_TTL = 7200   # Only cache items for 2 hours
 
+INTERNAL_AGENTS = {
+    "Windows Package Manager": ("winget-cli", "Microsoft-Delivery-Optimization", "WindowsPackageManager", "Microsoft BITS",),
+    "NSIS (plugin)": ("NSIS_Inetc", ),
+    "Transmission": ("Transmission/", ),
+    "Free Download Manager": ("FDM", ),
+}
+
 # Different indices have different field names, account for it here:
 FIELD_NAMES = {
     "fastly": { # the index prefix
@@ -177,6 +184,14 @@ async def process(form_data):
                         ua = ua_parser.user_agent_parser.Parse(uaentry["key"])
                         ua_key = ua.get("os", {}).get("family", "??") + " / " + ua.get("user_agent", {}).get("family", "??")
                         uas[ua_key] = uas.get(ua_key, 0) + uaentry["doc_count"]
+                        # Adjust for various package managers
+                        if ua["user_agent"]["family"] == "Other":
+                            for ua_key, ua_names in INTERNAL_AGENTS.items():
+                                if any(x in uaentry["key"] for x in ua_names):
+                                    ua["user_agent"]["family"] = ua_key
+                                    break
+                        if ua["user_agent"]["family"] == "Other":
+                            print(uaentry["key"])
                     for key, val in uas.items():
                         # There will be duplicate entries here, so we are going to go for the highest count found for each URL
                         downloaded_artifacts[url]["useragents"][key] = max(downloaded_artifacts[url]["useragents"].get(key, 0), val)
