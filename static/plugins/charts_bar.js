@@ -58,21 +58,25 @@ function chart_bar(title, description, series, styles, timeseries=false, stacked
             valueFormatter: timeseries ? null : (val) => `${val.toFixed(2)}%`,
             formatter: stacked ? (params) => {
                 let output = `<h6>${params[0].axisValueLabel}</h6><table class="w-full">`;
-                params.reverse().forEach(function (param) {
-                    const value =param.data;
+                params.sort((a,b) => (b.data[1] - a.data[1]));
+                params.forEach(function (param) {
+                    const value = param.data;
+                    let value_printed = value[1];
                     if (fmtoptions.binary) {
-                        let val = value[1];
-                        if (val > (1024**4)) val = (val / (1024**4)).toFixed(2) + "TB";
-                        else if (val > (1024**3)) val = (val / (1024**3)).toFixed(2) + "GB";
-                        else if (val > (1024**2)) val = (val / (1024**2)).toFixed(2) + "MB";
-                        else if (val > (1024**1)) val = (val / (1024**1)).toFixed(2) + "KB";
-                        value[1] = val;
+                        let val = value_printed;
+                        if (val > (1024**4)) val = (val / (1024**4)).toFixed(2) + " TB";
+                        else if (val > (1024**3)) val = (val / (1024**3)).toFixed(2) + " GB";
+                        else if (val > (1024**2)) val = (val / (1024**2)).toFixed(2) + " MB";
+                        else if (val > (1024**1)) val = (val / (1024**1)).toFixed(2) + " KB";
+                        value_printed = val;
+                    } else {
+                        value_printed = value_printed.pretty();
                     }
                     if (value[1] !== 0) {
                         output += `<tr>
                           <td>${param.marker}</td>
                           <td>${param.seriesName}</td>
-                          <td class="text-right font-bold tabular-nums">${value[1]}</td>
+                          <td class="text-right font-bold tabular-nums">${value_printed}</td>
                         </tr>`;
                     }
                 });
