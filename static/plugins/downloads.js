@@ -165,6 +165,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
     uris_combined.innerText = "(show statistics for all top URIs)";
     uris_combined.value = "";
     uri_filter.appendChild(uris_combined);
+    uri_filter.style.display = "block";
     const uris_single = document.createElement('option');
     uris_single.innerText = "Individual URIs:";
     uris_single.disabled = true;
