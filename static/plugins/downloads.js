@@ -43,6 +43,7 @@ async function render_dashboard_downloads(project, duration="7d") {
     const pinput = document.createElement('input');
     pinput.placeholder = "project or incubator/podling";
     pinput.size = 25; // ensure hint is not truncated
+    pinput.style.display = "block";
     pinput.addEventListener('keyup', (ev) => { if (ev.key === "Enter"){
         location.hash = `#downloads&project=${ev.target.value}`;
         fetch_download_stats();
@@ -67,8 +68,14 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
     }
 
     const current_stats = {};
+
+    if (Object.values(stats_as_json).some(x => x.downscaled === true)) {
+        const note = document.createElement("div");
+        note.innerText = "Note: Due to the high number of different user agents downloading files for this project, the user agent breakdown has been simplified in order to provide these statistics.";
+        note.style.color = "orange";
+        document.getElementById('page_description').appendChild(note);
+    }
     for (const [uri, data] of Object.entries(stats_as_json)) {
-        if (data.downscaled === true) document.getElementById('page_description').innerText = "Note: Due to the high number of different user agents downloading files for this project, the user agent breakdown has been simplified in order to provide these statistics.";
         if (!target_uri || target_uri === uri) current_stats[uri] = data;
     }
 
@@ -131,7 +138,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
     }
 
     uris.sort((a,b) => total_downloads_sum[b] - total_downloads_sum[a]);
-    const uris_top_downloads = uris.slice(0, 10);
+    const uris_top_downloads = uris.slice(0, 30);
     if (!target_uri) {
         total_downloads_curated["Other files"] = [];
         for (const day of all_days) {
@@ -190,7 +197,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
 
 
     uris.sort((a,b) => total_bytes_sum[b] - total_bytes_sum[a]);
-    const uris_top_bytes = uris.slice(0, 10);
+    const uris_top_bytes = uris.slice(0, 30);
     if (!target_uri) {
         total_bytes_curated["Other files"] = [];
         for (const day of all_days) {
