@@ -19,6 +19,25 @@ async function fetch_download_stats(prefs) {
     show_download_stats(project, download_stats, duration);
 }
 
+// dict_to_pie: Converts a dictionary to a sorted array, collating "others" if limit is exceeded
+function dict_to_pie(dict, limit=10) {
+    const keys = Object.keys(dict);
+    keys.sort((a,b) => { return dict[b] - dict[a]});
+
+    const keys_top = keys.slice(0,limit);
+
+    const pie_array = [];
+    let others = 0;
+    for (const key of keys) {
+        if (key !== "Other" && keys_top.includes(key)) pie_array.push({name: key, value: dict[key]});
+        else others += dict[key];
+    }
+    if (keys.length > limit) {
+        pie_array.push({name: "Other", value: others});
+    }
+    return pie_array
+}
+
 async function render_dashboard_downloads(project, duration="7d") {
     if (!cca2_list) cca2_list = await (await fetch("/_assets/cca2.json")).json();
 
@@ -62,6 +81,8 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
     const total_bytes_curated = {};
     const total_bytes_histogram_summed = {};
     const total_bytes_sum = {};
+    const total_by_browser = {};
+    const total_by_system = {};
     const uris = Object.keys(current_stats);
 
     let downloads_as_sum = 0;
@@ -83,6 +104,12 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
     for (const [uri, data] of Object.entries(current_stats)) {
         total_downloads_histogram[uri] = [];
         total_bytes_histogram[uri] = [];
+        for (const [key, val] of Object.entries(data.useragents)) {
+            const [os, browser] = key.split(" / ", 2);
+            total_by_browser[browser] = (total_by_browser[browser]||0) + val;
+            total_by_system[os] = (total_by_system[os]||0) + val;
+        }
+        dict_to_pie(total_by_browser);
         for (const day of all_days) {
             let found_day = false;
             for (const entry of data.daily_stats) {
@@ -261,9 +288,16 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
     const infotable = chart_table("At a glance", null, dlinfotable);
     outer_chart_area.appendChild(infotable);
 
-
-
-    return
+    // Downloads by browser and operating system
+    outer_chart_area.appendChild(document.createElement('hr'));
+    const donut_os = chart_pie("Downloads by Operating System", "This chart shows the distribution of downloads based on the users' operating systems as reported by the browser. The chart only reflects the top 50 most downloaded artifacts.", dict_to_pie(total_by_system), {width: "720px", height: "400px"}, donut=true);
+    donut_os.style.maxWidth = "600px";
+    donut_os.style.height = "460px";
+    outer_chart_area.appendChild(donut_os);
+    const donut_browser = chart_pie("Downloads by Browser", "This chart shows the distribution of downloads based on the users' browser clients as reported by the browser. The chart only reflects the top 50 most downloaded artifacts.", dict_to_pie(total_by_browser), {width: "720px", height: "400px"}, donut=true);
+    donut_browser.style.maxWidth = "600px";
+    donut_browser.style.height = "460px";
+    outer_chart_area.appendChild(donut_browser);
 
 }
 

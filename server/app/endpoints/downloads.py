@@ -25,8 +25,10 @@ import elasticsearch_dsl
 from .. import plugins
 import re
 import time
+import ua_parser.user_agent_parser
 
 MAX_HITS = 50  # Max number of artifacts to track in a single search
+MAX_HITS_UA = 75  # Max number of user agents to collate
 DOWNLOADS_CACHE_ITEMS = 200  # Keep the 200 latest search results in cache. 200 results is ~50MB
 DOWNLOADS_CACHE_TTL = 7200   # Only cache items for 2 hours
 
@@ -111,6 +113,8 @@ async def process(form_data):
             # Bucket sorting by most downloaded items
             q.aggs.bucket(
                 "most_downloads", elasticsearch_dsl.A("terms", field=f"{field_names['uri']}.keyword", size=MAX_HITS)
+            ).metric(
+                "useragents", "terms", field=field_names["useragent"]+".keyword", size=MAX_HITS_UA
             ).bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]
             ).metric(
                 "bytes_sum", "sum", field=field_names["bytes"]
@@ -125,6 +129,8 @@ async def process(form_data):
                 "most_traffic", elasticsearch_dsl.A("terms", field=f"{field_names['uri']}.keyword", size=MAX_HITS, order={"bytes_sum": "desc"})
             ).metric(
                 "bytes_sum", "sum", field=field_names["bytes"]
+            ).metric(
+                "useragents", "terms", field=field_names["useragent"]+".keyword", size=MAX_HITS_UA
             ).bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]
             ).metric(
                 "bytes_sum", "sum", field=field_names["bytes"]
@@ -157,12 +163,23 @@ async def process(form_data):
                             "hits_unique": 0,
                             "cca2": {},
                             "daily_stats": {},
+                            "useragents": {},
                         }
                     no_bytes = 0
                     no_hits = 0
                     no_hits_unique = 0
                     cca2_hits = {}
                     daily_data = []
+
+                    # User Agent (Browser + OS) summation
+                    uas = {}
+                    for uaentry in entry["useragents"]["buckets"]:
+                        ua = ua_parser.user_agent_parser.Parse(uaentry["key"])
+                        ua_key = ua.get("os", {}).get("family", "??") + " / " + ua.get("user_agent", {}).get("family", "??")
+                        uas[ua_key] = uas.get(ua_key, 0) + uaentry["doc_count"]
+                    for key, val in uas.items():
+                        # There will be duplicate entries here, so we are going to go for the highest count found for each URL
+                        downloaded_artifacts[url]["useragents"][key] = max(downloaded_artifacts[url]["useragents"].get(key, 0), val)
 
                     for daily_entry in entry["per_day"]["buckets"]:
                         day_ts = int(daily_entry["key"] / 1000)
@@ -173,6 +190,7 @@ async def process(form_data):
                         visits_unique = int(daily_entry["unique_ips"]["value"])
                         no_hits += nh_daily
                         no_hits_unique += visits_unique
+
                         for ccaentry in daily_entry["cca2"]["buckets"]:
                             cca2 = ccaentry["key"]
                             cca2_count = ccaentry["doc_count"]
