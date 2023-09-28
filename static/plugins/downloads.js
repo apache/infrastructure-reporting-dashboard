@@ -68,6 +68,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
 
     const current_stats = {};
     for (const [uri, data] of Object.entries(stats_as_json)) {
+        if (data.downscaled === true) document.getElementById('page_description').innerText = "Note: Due to the high number of different user agents downloading files for this project, the user agent breakdown has been simplified in order to provide these statistics.";
         if (!target_uri || target_uri === uri) current_stats[uri] = data;
     }
 
