@@ -157,6 +157,7 @@ async def process(form_data):
 
     # Check if we have a cached result
     cache_found = False
+    # TODO: the cache key needs to take account of form_data filters as they affect the content
     cache_key = f"{project}-{duration}"
     cache_timeout_ts = time.time() - DOWNLOADS_CACHE_TTL
     for item in downloads_data_cache:  # (cache_key, cache_ts, cache_data)
