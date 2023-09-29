@@ -244,10 +244,11 @@ async def process(form_data):
                         downloaded_artifacts[url]["hits_unique"] += no_hits_unique
                     if sum([x for x in cca2_hits.values()]) > sum([x for x in downloaded_artifacts[url]["cca2"].values()]):
                         downloaded_artifacts[url]["cca2"] = cca2_hits
-        # Ensure all entries are properly marked if query was downscaled
-        if downscaled:
-            for key, val in downloaded_artifacts.items():
-                val["downscaled"] = True
+            # Ensure all entries are properly marked if query was downscaled
+            if downscaled:
+                for key, val in downloaded_artifacts.items():
+                    val["downscaled"] = True
+
         # Set cache data and cull old cache list if needed
         new_cache_list = [item for item in downloads_data_cache if item[1] >= cache_timeout_ts]
         downloads_data_cache.clear()
