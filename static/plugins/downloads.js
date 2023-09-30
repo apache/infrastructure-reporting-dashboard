@@ -30,7 +30,7 @@ function dict_to_pie(dict, limit=10) {
         if (key !== "Other" && keys_top.includes(key)) pie_array.push({name: key, value: dict[key]});
         else others += dict[key];
     }
-    if (keys.length > limit) {
+    if (others > 0) { // were there any others?
         pie_array.push({name: "Other", value: others});
     }
     return pie_array.sort((a,b) => b.value - a.value)
