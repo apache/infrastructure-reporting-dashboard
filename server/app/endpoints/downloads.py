@@ -204,15 +204,18 @@ async def process(form_data):
                     # User Agent (Browser + OS) summation
                     uas = {}
                     for uaentry in entry["useragents"]["buckets"]:
-                        ua = ua_parser.user_agent_parser.Parse(uaentry["key"])
-                        ua_key = ua.get("os", {}).get("family", "??") + " / " + ua.get("user_agent", {}).get("family", "??")
-                        uas[ua_key] = uas.get(ua_key, 0) + uaentry["doc_count"]
+                        ua_agent = uaentry["key"] # the full agent string
+                        ua = ua_parser.user_agent_parser.Parse(ua_agent)
+                        ua_os_family = ua.get("os", {}).get("family", "??")
+                        ua_agent_family = ua.get("user_agent", {}).get("family", "??")
                         # Adjust for various package managers
-                        if ua["user_agent"]["family"] == "Other":
-                            for ua_key, ua_names in INTERNAL_AGENTS.items():
-                                if any(x in uaentry["key"] for x in ua_names):
-                                    ua["user_agent"]["family"] = ua_key
+                        if ua_agent_family == "Other":
+                            for ia_key, ia_names in INTERNAL_AGENTS.items():
+                                if any(x in ua_agent for x in ia_names):
+                                    ua_agent_family = ia_key
                                     break
+                        ua_key = ua_os_family + " / " + ua_agent_family
+                        uas[ua_key] = uas.get(ua_key, 0) + uaentry["doc_count"]
                     for key, val in uas.items():
                         # There will be duplicate entries here, so we are going to go for the highest count found for each URL
                         downloaded_artifacts[url]["useragents"][key] = max(downloaded_artifacts[url]["useragents"].get(key, 0), val)
