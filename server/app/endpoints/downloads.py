@@ -205,15 +205,24 @@ async def process(form_data):
                     uas = {}
                     for uaentry in entry["useragents"]["buckets"]:
                         ua_agent = uaentry["key"] # the full agent string
+                        # NOTE: ua_parser will set OS and UA Family to "Other" when it doesn't recognize the UA string.
                         ua = ua_parser.user_agent_parser.Parse(ua_agent)
-                        ua_os_family = ua.get("os", {}).get("family", "??")
-                        ua_agent_family = ua.get("user_agent", {}).get("family", "??")
-                        # Adjust for various package managers
+                        ua_os_family = ua.get("os", {}).get("family", "Unknown")
+                        # If OS is "Other", we'll adjust it to "Unknown" ourselves.
+                        if ua_os_family == "Other":
+                            ua_os_family = "Unknown"
+                        # UA family will typically be "Other" when unknown to the parser, we'll address this below.
+                        # If the family is empty, we'll also set to Other and adjust later on.
+                        ua_agent_family = ua.get("user_agent", {}).get("family", "Other")
+                        # Adjust for various package managers we know of
                         if ua_agent_family == "Other":
                             for ia_key, ia_names in INTERNAL_AGENTS.items():
                                 if any(x in ua_agent for x in ia_names):
                                     ua_agent_family = ia_key
                                     break
+                        # If we still don't know what this is, mark as "Unknown", to distinguish from the combined "Other" chart group.
+                        if ua_agent_family == "Other":
+                            ua_agent_family = "Unknown"
                         ua_key = ua_os_family + " / " + ua_agent_family
                         uas[ua_key] = uas.get(ua_key, 0) + uaentry["doc_count"]
                     for key, val in uas.items():
