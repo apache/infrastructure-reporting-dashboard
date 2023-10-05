@@ -139,13 +139,13 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
     }
 
     uris.sort((a,b) => total_downloads_sum[b] - total_downloads_sum[a]);
-    const uris_top_downloads = uris.slice(0, 30);
+    const uris_top_downloads = uris.slice(0, 30); // Only include some of the top URIs in the graph
     if (!target_uri) {
         total_downloads_curated["Other files"] = [];
         for (const day of all_days) {
             let other_count = 0;
             for (const [uri, entry] of Object.entries(total_downloads_histogram)) {
-                if (!uris_top_downloads.includes(uri)) { // Don't include top 10
+                if (!uris_top_downloads.includes(uri)) { // Not included in graph
                     for (const el of entry) {
                         if (el[0] === day) {
                             other_count += el[1];
@@ -200,13 +200,13 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
 
 
     uris.sort((a,b) => total_bytes_sum[b] - total_bytes_sum[a]);
-    const uris_top_bytes = uris.slice(0, 30);
+    const uris_top_bytes = uris.slice(0, 30); // Only include some of the top URIs in the graph
     if (!target_uri) {
         total_bytes_curated["Other files"] = [];
         for (const day of all_days) {
             let other_count = 0;
             for (const [uri, entry] of Object.entries(total_bytes_histogram)) {
-                if (!uris_top_bytes.includes(uri)) { // Don't include top 10
+                if (!uris_top_bytes.includes(uri)) { // Not included in graph
                     for (const el of entry) {
                         if (el[0] === day) {
                             other_count += el[1];
