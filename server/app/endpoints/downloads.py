@@ -108,7 +108,7 @@ async def make_query(provider, field_names, project, duration, filters, max_hits
         "cca2", "terms", field=field_names["geo_country"] + ".keyword"
     )
 
-    # Bucket sorting by most bytes downloaded (may differ from most downloads top 50!)
+    # Bucket sorting by most bytes downloaded (may differ from most downloads top 60!)
     main_bucket = q.aggs.bucket(
         "most_traffic", elasticsearch_dsl.A("terms", field=f"{field_names['uri']}.keyword", size=max_hits, order={"bytes_sum": "desc"})
     )
