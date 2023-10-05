@@ -99,7 +99,7 @@ async def make_query(provider, field_names, project, duration, filters, max_hits
         "most_downloads", elasticsearch_dsl.A("terms", field=f"{field_names['uri']}.keyword", size=max_hits)
     )
     main_bucket.metric("useragents", "terms", field=field_names["useragent"]+".keyword", size=max_ua)
-    main_bucket.bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]
+    main_bucket.bucket("per_day", "date_histogram", calendar_interval="day", field=field_names["timestamp"]
                        ).metric(
         "bytes_sum", "sum", field=field_names["bytes"]
     ).metric(
@@ -115,7 +115,7 @@ async def make_query(provider, field_names, project, duration, filters, max_hits
     main_bucket.metric("useragents", "terms", field=field_names["useragent"]+".keyword", size=max_ua)
     main_bucket.metric(
         "bytes_sum", "sum", field=field_names["bytes"]
-    ).bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]
+    ).bucket("per_day", "date_histogram", calendar_interval="day", field=field_names["timestamp"]
              ).metric(
         "bytes_sum", "sum", field=field_names["bytes"]
     ).metric(
