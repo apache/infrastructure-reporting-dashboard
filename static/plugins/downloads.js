@@ -142,6 +142,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
     const uris_top_downloads = uris.slice(0, 30);
     if (!target_uri) {
         total_downloads_curated["Other files"] = [];
+        let other_count_total = 0;
         for (const day of all_days) {
             let other_count = 0;
             for (const [uri, entry] of Object.entries(total_downloads_histogram)) {
@@ -154,6 +155,10 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
                 }
             }
             total_downloads_curated["Other files"].push([day, other_count]);
+            other_count_total += other_count;
+        }
+        if (other_count_total == 0) {
+            delete total_downloads_curated["Other files"];
         }
     }
     for (const uri of uris_top_downloads) {
@@ -203,6 +208,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
     const uris_top_bytes = uris.slice(0, 30);
     if (!target_uri) {
         total_bytes_curated["Other files"] = [];
+        let other_count_total = 0;
         for (const day of all_days) {
             let other_count = 0;
             for (const [uri, entry] of Object.entries(total_bytes_histogram)) {
@@ -215,6 +221,10 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
                 }
             }
             total_bytes_curated["Other files"].push([day, other_count]);
+            other_count_total += other_count;
+        }
+        if (other_count_total == 0) {
+            delete total_bytes_curated["Other files"];
         }
     }
     for (const uri of uris_top_bytes) {
