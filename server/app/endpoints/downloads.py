@@ -100,7 +100,7 @@ async def make_query(provider, field_names, project, duration, filters, max_hits
     )
     main_bucket.metric("useragents", "terms", field=field_names["useragent"]+".keyword", size=max_ua)
     main_bucket.bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]
-                       ).metric(
+    ).metric(
         "bytes_sum", "sum", field=field_names["bytes"]
     ).metric(
         "unique_ips", "cardinality", field="client_ip.keyword"
@@ -116,7 +116,7 @@ async def make_query(provider, field_names, project, duration, filters, max_hits
     main_bucket.metric(
         "bytes_sum", "sum", field=field_names["bytes"]
     ).bucket("per_day", "date_histogram", interval="day", field=field_names["timestamp"]
-             ).metric(
+    ).metric(
         "bytes_sum", "sum", field=field_names["bytes"]
     ).metric(
         "unique_ips", "cardinality", field="client_ip.keyword"
