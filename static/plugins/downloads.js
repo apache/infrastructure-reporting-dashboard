@@ -298,11 +298,11 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
 
     // Downloads by browser and operating system
     outer_chart_area.appendChild(document.createElement('hr'));
-    const donut_os = chart_pie("Downloads by Operating System", "This chart shows the distribution of downloads based on the users' operating systems as reported by the browser. The chart only reflects the top 50 most downloaded artifacts.", dict_to_pie(total_by_system), {width: "720px", height: "400px"}, donut=true);
+    const donut_os = chart_pie("Downloads by Operating System", "This shows the distribution of downloads based on the users' browser clients as reported by them, for the top 60 files (or single file if one is selected).", dict_to_pie(total_by_system), {width: "720px", height: "400px"}, donut=true);
     donut_os.style.maxWidth = "600px";
     donut_os.style.height = "460px";
     outer_chart_area.appendChild(donut_os);
-    const donut_browser = chart_pie("Downloads by Browser", "This chart shows the distribution of downloads based on the users' browser clients as reported by the browser. The chart only reflects the top 50 most downloaded artifacts.", dict_to_pie(total_by_browser), {width: "720px", height: "400px"}, donut=true);
+    const donut_browser = chart_pie("Downloads by Browser", "This shows the distribution of downloads based on the users' browser clients as reported by them, for the top 60 files (or single file if one is selected).", dict_to_pie(total_by_browser), {width: "720px", height: "400px"}, donut=true);
     donut_browser.style.maxWidth = "600px";
     donut_browser.style.height = "460px";
     outer_chart_area.appendChild(donut_browser);
