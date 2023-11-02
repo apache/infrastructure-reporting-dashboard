@@ -15,7 +15,7 @@ function split_once(str, splitter) {
     return [str, null]
 }
 
-async function render_dashboard_sitesource(assignee, timespan) {
+async function render_dashboard_sitesource() {
     if (!site_source_json) await seed_site_source();
     document.getElementById('page_title').innerText = "Site Source Checker";
     document.getElementById('page_description').innerText = "This page monitors the sources of all ASF project websites. Sites with any fields marked in red or yellow are not currently being updated. The colored field will indicate the reason for this.";

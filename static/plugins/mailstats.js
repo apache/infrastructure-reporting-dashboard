@@ -5,7 +5,7 @@ async function seed_mail_stats() {
     show_mailstats("collated");
 }
 
-async function render_dashboard_mailstats(hostname="collated") {
+async function render_dashboard_mailstats() {
     await OAuthGate(seed_mail_stats);
 }
 

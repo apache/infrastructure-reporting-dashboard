@@ -10,7 +10,7 @@ function ralign_pct(pct) {
     span.style.float = 'right';
     return span
 }
-async function render_dashboard_uptime(assignee, timespan) {
+async function render_dashboard_uptime() {
     if (!uptime_json) await seed_uptime_stats();
     document.getElementById('page_title').innerText = "Uptime Statistics";
     document.getElementById('page_description').innerText = "This is a general overview of the uptime statistics, as collected by our monitoring services. Global uptime figures are defined as the average uptime of all services within their respective service categories, or as a whole. On a monthly basis, we conduct nearly five million checks against our infrastructure, comprised of over 50 different service components and spread over more than 250 machines in data centers around the world. ";

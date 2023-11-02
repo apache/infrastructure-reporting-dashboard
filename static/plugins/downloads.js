@@ -36,7 +36,7 @@ function dict_to_pie(dict, limit=10) {
     return pie_array.sort((a,b) => b.value - a.value)
 }
 
-async function render_dashboard_downloads(project, duration="7d") {
+async function render_dashboard_downloads() {
     if (!cca2_list) cca2_list = await (await fetch("/_assets/cca2.json")).json();
 
 
