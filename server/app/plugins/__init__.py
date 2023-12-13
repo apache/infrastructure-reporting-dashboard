@@ -51,3 +51,4 @@ root: PluginList = PluginList()
 from . import jirastats
 from . import uptime
 from . import mailstats
+from . import downloads
