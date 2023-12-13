@@ -287,4 +287,75 @@ async def generate_stats(project: str, duration: str, filters: str="empty_ua,no_
 
     return downloaded_artifacts or {"success": False, "message": "No results found"}
 
-plugins.root.register(slug="downloads", title="Download Statistics", icon="bi-cloud-download", private=True)
+
+async def donwloads_scan_loop():
+    projects = []
+    while True:
+        # Update list of projects, if possible - otherwise, fall back to cache
+        projects_list = DEFAULT_PROJECTS_LIST
+        if hasattr(config.reporting, "downloads"):  # If prod...
+               projects_list = config.reporting.downloads.get("projects_list", DEFAULT_PROJECTS_LIST)
+
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as hc:
+                try:
+                    async with hc.get(projects_list) as req:
+                        if req.status == 200:
+                            projects = (await req.json())["projects"].keys()
+                except (aiohttp.ClientError, asyncio.TimeoutError, json.JSONDecodeError) as e:
+                    print(f"Download stats: Could not fetch list of projects from {projects_list}: {e}")
+                    print("Download stats: Using cached entry instead")
+
+        # For each project, run scans if needed
+        for project in projects:
+            if datadir:
+                # Ensure the project data dir exists, otherwise make it
+                project_datadir = os.path.join(datadir, project)
+                if not os.path.isdir(project_datadir):
+                    print(f"Download stats: Setting up downloads data dir for {project}: {project_datadir}")
+                    try:
+                        os.mkdir(project_datadir)
+                    except OSError as e:
+                        print(f"Download stats: Could not set up {project_datadir}: {e}")
+                        print(f"Download stats: No persistent download data will be saved for this project")
+                        continue
+
+                # Make a list of the reports to gather. We want this month, and perhaps last N months, if the
+                # reports are outdated or missing.
+                months_to_process = []
+                today = datetime.datetime.utcnow()
+                for m in range(0, PERSISTENT_REPORTS_BACKFILL_MONTHS):
+                    today = today.replace(day=1)  # Round down to first day of the month
+                    monthly_filename = os.path.join(project_datadir, f"{today.year}-{today.month:02}.json")
+                    monthly_query = f"now-{m}M/M"  # OpenSearch whole-month query
+                    monthly_deadline = (today.replace(year=today.year if today.month != 12 else today.year+1, month=today.month % 12+1)).timestamp()
+                    report_stat = os.stat(monthly_filename) if os.path.exists(monthly_filename) else None
+                    # If no report file, empty file, or it was not updated after the month was done, schedule it
+                    if not report_stat or report_stat.st_size == 0 or report_stat.st_mtime < monthly_deadline:
+                        months_to_process.append((monthly_filename, monthly_query))
+                    today = today - datetime.timedelta(days=1)  # Wind clock back one month
+
+                for entry in months_to_process:
+                    monthly_filename, monthly_query = entry
+                    if not os.path.exists(monthly_filename):
+                        try:
+                            open(monthly_filename, "w+").write("")
+                        except OSError as e:
+                            print(f"Download stats: Cannot write to data file {monthly_filename}, skipping: {e}")
+                            continue
+
+                    # only scan if we don't have a recent stored result
+                    json_stat = os.stat(monthly_filename)
+                    #Skip if file is present, >0 bytes, and was written to recently
+                    if json_stat and json_stat.st_mtime > (time.time() - 86400) and json_stat.st_size > 0:
+                        #print(f"Skipping {monthly_filename}")
+                        continue
+                    # Grab scan results, write to disk
+                    json_result = await generate_stats(project, monthly_query)
+                    json.dump(json_result, open(monthly_filename, "w"), indent=2)
+                    #print(f"Wrote {monthly_filename}")
+
+        # Sleep for a couple of hours (4), then check if we need to scan again
+        await asyncio.sleep(4*3600)
+
+
+plugins.root.register(donwloads_scan_loop, slug="downloads", title="Download Statistics", icon="bi-cloud-download", private=True)
