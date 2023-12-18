@@ -101,7 +101,12 @@ async def make_query(provider, field_names, project, duration, filters, max_hits
         q = q.filter("range", **{field_names["timestamp"]: {"gte": f"now-{duration}d"}})
     q = q.filter("match", **{field_names["request_method"]: "GET"})
     q = q.filter("range", bytes={"gt": 5000}) # this filters out hashes and (most?) sigs
-    q = q.filter("prefix", **{field_names["uri"] + ".keyword": f"/{project}/"})
+    # Query project for both TLP and podling download locations. It may be TLP now, it may be Podling,
+    # it may have graduated somewhere in between.
+    query_tlp = elasticsearch_dsl.Q("prefix", **{field_names["uri"] + ".keyword": f"/{project}/"})
+    query_podling = elasticsearch_dsl.Q("prefix", **{field_names["uri"] + ".keyword": f"/incubator/{project}/"})
+    q = q.query(elasticsearch_dsl.query.Bool(should=[query_tlp, query_podling], minimum_should_match=1))
+
     q = q.filter("match", **{field_names["vhost"]: field_names["_vhost_"]})
 
     # Various standard filters for weeding out bogus requests
