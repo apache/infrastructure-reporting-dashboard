@@ -47,6 +47,9 @@ INTERNAL_AGENTS = {
     "BigFix": ("BigFix", ),
 }
 
+# Common crawlers to ignore in stats.
+IGNORED_BOTS = ("bingbot", "amazonbot", "diffbot", "googlebot", "slurp", "yandex", "baidu", )
+
 # Different indices have different field names, account for it here:
 FIELD_NAMES = {
     "fastly": { # the index prefix
@@ -110,8 +113,12 @@ async def make_query(provider, field_names, project, duration, filters, max_hits
     q = q.filter("match", **{field_names["vhost"]: field_names["_vhost_"]})
 
     # Various standard filters for weeding out bogus requests
+    uas_to_ignore = list(IGNORED_BOTS)
     if "empty_ua" in filters:  # Empty User-Agent header, usually automation gone wrong
         q = q.exclude("terms", **{field_names["useragent"]+".keyword": ["", "-"]})
+    if uas_to_ignore:
+        q = q.exclude("terms", **{field_names["useragent"]: uas_to_ignore})
+    
     # TODO: Make this not extremely slow. For now, we'll filter in post.
     #if "no_query" in filters:  # Don't show results with query strings in them
     #    q = q.exclude("wildcard", **{field_names["uri"]+".keyword": "*="})
