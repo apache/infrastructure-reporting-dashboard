@@ -27,7 +27,14 @@ async def process(form_data):
     project = form_data.get("project", "httpd")    # Project/podling to fetch stats for
     duration = form_data.get("duration", 7)        # Timespan to search (in whole days)
     filters = form_data.get("filters", "empty_ua,no_query") # Various search filters
-    return await downloads.generate_stats(project, duration, filters)
+    add_metadata = form_data.get("meta", "no")
+    stats, params = await downloads.generate_stats(project, duration, filters)
+    if add_metadata == "yes":
+        return {
+            "query": params,
+            "files": stats,
+        }
+    return stats
 
 
 quart.current_app.add_url_rule(

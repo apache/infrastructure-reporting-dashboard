@@ -169,7 +169,7 @@ async def make_query(provider, field_names, project, duration, filters, max_hits
 
 
 async def generate_stats(project: str, duration: str, filters: str="empty_ua,no_query"):
-
+    original_duration = duration
     if isinstance(duration, str) and "M/M" not in duration:
         if duration.endswith("d"):
             duration = duration[:-1]
@@ -179,16 +179,25 @@ async def generate_stats(project: str, duration: str, filters: str="empty_ua,no_
             return {"success": False, "message": "Invalid duration window! Please specify a whole number of days"}
 
     downloaded_artifacts = {}
+    query_parameters = {
+        "filters": filters,
+        "timespan": original_duration,
+        "project": project,
+        "daily_stats_4_tuple": ["utc_epoch", "downloads", "unique_clients", "bytes_transferred",],
+        "hosts_tracked": [x["_vhost_"] for x in FIELD_NAMES.values()],
+    }
 
     # Check if we have a cached result
     cache_found = False
     # TODO: the cache key needs to take account of form_data filters as they affect the content
     cache_key = f"{project}-{duration}"
     cache_timeout_ts = time.time() - DOWNLOADS_CACHE_TTL
+    epochs = []
     for item in downloads_data_cache:  # (cache_key, cache_ts, cache_data)
         if item[0] == cache_key and item[1] >= cache_timeout_ts:
             cache_found = True
             downloaded_artifacts = item[2]
+            query_parameters = item[3]
             break
 
     if not cache_found:
@@ -256,6 +265,7 @@ async def generate_stats(project: str, duration: str, filters: str="empty_ua,no_
 
                     for daily_entry in entry["per_day"]["buckets"]:
                         day_ts = int(daily_entry["key"] / 1000)
+                        epochs.append(day_ts)
                         nb_daily = int(daily_entry["bytes_sum"]["value"])
                         nh_daily = int(daily_entry["doc_count"])
                         no_bytes += nb_daily
@@ -287,6 +297,10 @@ async def generate_stats(project: str, duration: str, filters: str="empty_ua,no_
                 for key, val in downloaded_artifacts.items():
                     val["downscaled"] = True
 
+        if epochs:
+            min_epoch = time.strftime("%Y-%m-%d 00:00:00", time.gmtime(min(epochs)))
+            max_epoch = time.strftime("%Y-%m-%d 23:59:59", time.gmtime(max(epochs)))
+            query_parameters["timespan"] = f"{min_epoch} (UTC) -> {max_epoch} (UTC)"
         # Set cache data and cull old cache list if needed
         new_cache_list = [item for item in downloads_data_cache if item[1] >= cache_timeout_ts]
         downloads_data_cache.clear()
@@ -295,9 +309,9 @@ async def generate_stats(project: str, duration: str, filters: str="empty_ua,no_
         # entries are added in date order, so [0] is the oldest
         while len(downloads_data_cache) >= DOWNLOADS_CACHE_ITEMS:
             del downloads_data_cache[0]
-        downloads_data_cache.append((cache_key, time.time(), downloaded_artifacts))
+        downloads_data_cache.append((cache_key, time.time(), downloaded_artifacts, query_parameters))
 
-    return downloaded_artifacts or {"success": False, "message": "No results found"}
+    return downloaded_artifacts or {}, query_parameters
 
 
 async def downloads_scan_loop():
@@ -362,7 +376,11 @@ async def downloads_scan_loop():
                         #print(f"Skipping {monthly_filename}")
                         continue
                     # Grab scan results, write to disk
-                    json_result = await generate_stats(project, monthly_query)
+                    stats, query_params = await generate_stats(project, monthly_query)
+                    json_result = {
+                        "query": query_params,
+                        "files": stats,
+                    }
                     json.dump(json_result, open(monthly_filename, "w"), indent=2)
                     #print(f"Wrote {monthly_filename}")
 

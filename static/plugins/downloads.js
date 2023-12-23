@@ -292,7 +292,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
     let total_hits = 0;
 
     const jsonlink = document.createElement('a');
-    jsonlink.href = `/api/downloads?project=${project}&duration=${duration}`;
+    jsonlink.href = `/api/downloads?project=${project}&duration=${duration}&meta=yes`;
     jsonlink.innerText = "Raw JSON data";
 
     let dlinfotable = {
