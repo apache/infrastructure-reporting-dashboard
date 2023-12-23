@@ -300,7 +300,7 @@ async def generate_stats(project: str, duration: str, filters: str="empty_ua,no_
     return downloaded_artifacts or {"success": False, "message": "No results found"}
 
 
-async def donwloads_scan_loop():
+async def downloads_scan_loop():
     projects = []
     while True:
         # Update list of projects, if possible - otherwise, fall back to cache
@@ -370,4 +370,4 @@ async def donwloads_scan_loop():
         await asyncio.sleep(4*3600)
 
 
-plugins.root.register(donwloads_scan_loop, slug="downloads", title="Download Statistics", icon="bi-cloud-download", private=True)
+plugins.root.register(downloads_scan_loop, slug="downloads", title="Download Statistics", icon="bi-cloud-download", private=True)
