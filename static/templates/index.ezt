@@ -36,7 +36,7 @@
                         <li class="nav-item">
                             <a href="#" class="nav-link" onclick="render_home();">
                                 <i class="bi bi-house-fill fs-4" style="padding-right: 4px;"></i>
-                                <span class="ms-1 d-none d-xl-inline">Home</span>
+                                <span class="ms-1 d-none d-xl-inline small">Home</span>
                             </a>
                         </li>
                     </ul>
@@ -47,7 +47,7 @@
                         <li class="nav-item">
                             <a href="#[plugins.slug]" onclick="render_dashboard_[plugins.slug]();" class="nav-link">
                                 <i class="bi [plugins.icon] fs-4" style="padding-right: 4px;"></i>
-                                <span class="ms-1 d-none d-xl-inline">[plugins.title]</span>
+                                <span class="ms-1 d-none d-xl-inline small">[plugins.title]</span>
                             </a>
                         </li>
                         [end][end]
