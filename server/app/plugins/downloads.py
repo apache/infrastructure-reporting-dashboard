@@ -388,4 +388,5 @@ async def downloads_scan_loop():
         await asyncio.sleep(4*3600)
 
 
-plugins.root.register(downloads_scan_loop, slug="downloads", title="Download Statistics", icon="bi-cloud-download", private=True)
+plugins.root.register(downloads_scan_loop, slug="downloads", title="Real-time Download Stats", icon="bi-cloud-download", private=True)
+plugins.root.register(slug="downloads_static", title="Public Download Statistics", icon="bi-cloud-download", private=False)

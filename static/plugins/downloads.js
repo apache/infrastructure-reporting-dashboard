@@ -319,3 +319,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
 
 }
 
+async function render_dashboard_downloads_static(){
+    // Redirect to static dir listing
+    location.href = "/download_stats/";
+}
