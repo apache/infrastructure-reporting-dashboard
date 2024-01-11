@@ -59,7 +59,7 @@
                         <li class="nav-item">
                             <a href="#[plugins.slug]" onclick="render_dashboard_[plugins.slug]();" class="nav-link text-warning">
                                 <i class="bi [plugins.icon] fs-4" style="padding-right: 4px;"></i>
-                                <span class="ms-1 d-none d-xl-inline">[plugins.title]</span>
+                                <span class="ms-1 d-none d-xl-inline small">[plugins.title]</span>
                             </a>
                         </li>
                         [end][end]
