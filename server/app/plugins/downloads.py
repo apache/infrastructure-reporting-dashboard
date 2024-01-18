@@ -185,6 +185,8 @@ async def generate_stats(project: str, duration: str, filters: str="empty_ua,no_
         "project": project,
         "daily_stats_4_tuple": ["utc_epoch", "downloads", "unique_clients", "bytes_transferred",],
         "hosts_tracked": [x["_vhost_"] for x in FIELD_NAMES.values()],
+        "max_hits": MAX_HITS,
+        "max_hits_useragent": MAX_HITS_UA,
     }
 
     # Check if we have a cached result
