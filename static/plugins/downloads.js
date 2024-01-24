@@ -15,7 +15,7 @@ async function fetch_download_stats(prefs) {
 
     outer_chart_area.innerText = "Fetching data, please wait...";
 
-    let download_stats = await (await fetch(`/api/downloads?project=${project}&duration=${duration}&metadata=yes`)).json();
+    let download_stats = await (await fetch(`/api/downloads?project=${project}&duration=${duration}&meta=yes`)).json();
     show_download_stats(project, download_stats, duration);
 }
 
