@@ -15,7 +15,7 @@ async function fetch_download_stats(prefs) {
 
     outer_chart_area.innerText = "Fetching data, please wait...";
 
-    let download_stats = await (await fetch(`/api/downloads?project=${project}&duration=${duration}`)).json();
+    let download_stats = await (await fetch(`/api/downloads?project=${project}&duration=${duration}&metadata=yes`)).json();
     show_download_stats(project, download_stats, duration);
 }
 
@@ -69,13 +69,13 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
 
     const current_stats = {};
 
-    if (Object.values(stats_as_json).some(x => x.downscaled === true)) {
+    if (Object.values(stats_as_json.files).some(x => x.downscaled === true)) {
         const note = document.createElement("div");
         note.innerText = "Note: Due to the high number of different user agents downloading files for this project, the user agent breakdown has been simplified in order to provide these statistics.";
         note.style.color = "orange";
         document.getElementById('page_description').appendChild(note);
     }
-    for (let [uri, data] of Object.entries(stats_as_json)) {
+    for (let [uri, data] of Object.entries(stats_as_json.files)) {
         if (uri.length > 72) uri = uri.substring(0, 34) + "[...]" + uri.substring(uri.length-34, uri.length);
         if (!target_uri || target_uri === uri) current_stats[uri] = data;
     }
@@ -165,6 +165,14 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
         total_downloads_curated[uri] = total_downloads_histogram[uri];
     }
 
+    // Max hits limit? Show note if combined stats are requested.
+    if (stats_as_json.query && stats_as_json.query.max_hits && !(target_uri && target_uri.length)) {
+        const max_hits_note = document.createElement("p);
+        const max_hits_no = parseInt(stats_as_json.query.max_hits).pretty();
+        max_hits_note.innerHTML = `<b>Note: </b> This result may be truncated. Only statistics for the top ${max_hits_no} files will be shown below.`;
+        outer_chart_area.appendChild(max_hits_note);
+    }
+
     // Drop-down selector for URIs
     const uri_filter = document.createElement('select');
     const uris_combined = document.createElement('option');
@@ -177,7 +185,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
     uris_single.disabled = true;
     uri_filter.appendChild(uris_single);
 
-    for (let [uri, data] of Object.entries(stats_as_json)) {
+    for (let [uri, data] of Object.entries(stats_as_json.files)) {
         const opt = document.createElement('option');
         if (uri.length > 72) uri = uri.substring(0, 34) + "[...]" + uri.substring(uri.length-34, uri.length);
         opt.innerText = `${uri} - (${data.hits.pretty()} downloads / ${data.bytes.pretty()} bytes)`;
