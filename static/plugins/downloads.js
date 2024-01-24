@@ -167,7 +167,7 @@ function show_download_stats(project, stats_as_json, duration="7d", target_uri="
 
     // Max hits limit? Show note if combined stats are requested.
     if (stats_as_json.query && stats_as_json.query.max_hits && !(target_uri && target_uri.length)) {
-        const max_hits_note = document.createElement("p);
+        const max_hits_note = document.createElement("p");
         const max_hits_no = parseInt(stats_as_json.query.max_hits).pretty();
         max_hits_note.innerHTML = `<b>Note: </b> This result may be truncated. Only statistics for the top ${max_hits_no} files will be shown below.`;
         outer_chart_area.appendChild(max_hits_note);
