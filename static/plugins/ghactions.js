@@ -21,7 +21,7 @@ function seconds_to_text(seconds) {
     return `${hours}h${minutes}m`;
 }
 
-function show_ghactions(project, hours = DEFAULT_HOURS, topN = 12) {
+function show_ghactions(project, hours = DEFAULT_HOURS, topN = 15) {
     let project_txt = project ? project : "All projects";
     document.getElementById('page_title').innerText = `GitHub Actions Statistics, ${project_txt}`;
     document.getElementById('page_description').innerText = "";
