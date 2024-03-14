@@ -88,10 +88,11 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT) {
 
     // filters
     const hourpicker = document.createElement('select');
+    hourpicker.style.marginRight = "20px";
     for (const val of [1, 2, 4, 8, 12, 24, 168, 720]) {
         const opt = document.createElement('option');
         opt.value = val;
-        opt.text = val > 24 ? Math.floor(val/24) + " days" : val + " hours";
+        opt.text = "Past " + (val > 24 ? Math.floor(val/24) + " days" : val + " hours");
         opt.selected = val == hours ? true : false;
         opt.addEventListener('click', () => {
             hours = val;
@@ -102,10 +103,11 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT) {
     }
 
     const projectpicker = document.createElement('select');
+    projectpicker.style.marginRight = "20px";
     for (const val of ghactions_json.all_projects) {
         const opt = document.createElement('option');
         opt.value = val;
-        opt.text = val > 24 ? Math.floor(val/24) + " days" : val;
+        opt.text = val;
         opt.selected = project === val ? true : false;
         opt.addEventListener('click', () => {
             project = val.includes(" ") ? null : val;
@@ -116,6 +118,7 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT) {
     }
 
     const limitpicker = document.createElement('select');
+    limitpicker.style.marginRight = "20px";
     for (const val of [10, 15, 20, 25, 30, 50]) {
         const opt = document.createElement('option');
         opt.value = val;
@@ -129,9 +132,9 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT) {
         limitpicker.appendChild(opt);
     }
 
-    outer_chart_area.appendChild(document.createElement('hr'))
-    outer_chart_area.appendChild(hourpicker)
+    outer_chart_area.appendChild(document.createElement('br'))
     outer_chart_area.appendChild(projectpicker)
+    outer_chart_area.appendChild(hourpicker)
     outer_chart_area.appendChild(limitpicker)
 
 }
