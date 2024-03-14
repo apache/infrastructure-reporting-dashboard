@@ -48,7 +48,11 @@ async def show_gha_stats(form_data):
         rowset = ghascanner.db.cursor.fetchmany()
         if not rowset:
             break
-        rows.extend([dict(row) for row in rowset])
+        for xrow in rowset:
+            row = dict(xrow)
+            if not project:  # If not viewing a single project, dismiss the jobs data to cut down on traffic
+                row.pop('jobs', '')
+            rows.append(row)
     return {
         "all_projects": ghascanner.projects,
         "selected_project": project,
