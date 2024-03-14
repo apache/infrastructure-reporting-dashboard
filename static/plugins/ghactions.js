@@ -1,14 +1,16 @@
 let ghactions_json = null;
 const DEFAULT_HOURS = 168;
+const DEFAULT_LIMIT = 15;  // top N items
 
 async function seed_ghactions() {
     let qs = new URLSearchParams(document.location.hash);
     let qsnew = new URLSearchParams();
     if (qs.get("project")) qsnew.set("project", qs.get("project"));
     if (qs.get("hours")) qsnew.set("hours", qs.get("hours"));
+    if (qs.get("limit")) qsnew.set("limit", qs.get("limit"));
     ghactions_json = await (await fetch(`/api/ghactions?${qsnew.toString()}`)).json();
     ghactions_json.all_projects.unshift("All projects");
-    show_ghactions(qs.get("project"), qs.get("hours")||DEFAULT_HOURS);
+    show_ghactions(qs.get("project"), qs.get("hours")||DEFAULT_HOURS, parseInt(qs.get("limit")||DEFAULT_LIMIT));
 }
 
 async function render_dashboard_ghactions() {
@@ -21,7 +23,15 @@ function seconds_to_text(seconds) {
     return `${hours}h${minutes}m`;
 }
 
-function show_ghactions(project, hours = DEFAULT_HOURS, topN = 15) {
+function setHash(project, hours, limit) {
+    let newHash = "#ghactions";
+    if (project) newHash += "&project=" + project;
+    if (hours) newHash += "&hours=" + hours;
+    if (limit) newHash += "&limit=" + limit;
+    location.hash = newHash;
+}
+
+function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT) {
     let project_txt = project ? project : "All projects";
     document.getElementById('page_title').innerText = `GitHub Actions Statistics, ${project_txt}`;
     document.getElementById('page_description').innerText = "";
@@ -84,8 +94,8 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = 15) {
         opt.text = val > 24 ? Math.floor(val/24) + " days" : val + " hours";
         opt.selected = val == hours ? true : false;
         opt.addEventListener('click', () => {
-            if (project) location.hash = `#ghactions&project=${project}&hours=${val}`;
-            else location.hash = `#ghactions&hours=${val}`;
+            hours = val;
+            setHash(project, hours, topN);
             seed_ghactions();
         })
         hourpicker.appendChild(opt);
@@ -98,21 +108,30 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = 15) {
         opt.text = val > 24 ? Math.floor(val/24) + " days" : val;
         opt.selected = project === val ? true : false;
         opt.addEventListener('click', () => {
-            if (val.includes(" ")) {
-                if (hours) location.hash = `#ghactions&hours=${hours}`;
-                else location.hash = "#ghactions";
-            }
-            else {
-                if (hours) location.hash = `#ghactions&project=${val}&hours=${hours}`;
-                else location.hash = `#ghactions&project=${val}`;
-            }
+            project = val.includes(" ") ? null : val;
+            setHash(project, hours, topN);
             seed_ghactions();
         })
         projectpicker.appendChild(opt);
     }
 
+    const limitpicker = document.createElement('select');
+    for (const val of [10, 15, 20, 25, 30, 50]) {
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.text = "Top " + val;
+        opt.selected = val === topN ? true : false;
+        opt.addEventListener('click', () => {
+            topN = val;
+            setHash(project, hours, topN);
+            seed_ghactions();
+        })
+        limitpicker.appendChild(opt);
+    }
+
     outer_chart_area.appendChild(document.createElement('hr'))
     outer_chart_area.appendChild(hourpicker)
     outer_chart_area.appendChild(projectpicker)
+    outer_chart_area.appendChild(limitpicker)
 
 }
