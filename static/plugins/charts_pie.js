@@ -1,4 +1,4 @@
-function chart_pie(title, description, values, styles, donut=false) {
+function chart_pie(title, description, values, styles, donut=false, fmtoptions = null, legend = null) {
     const chartdiv = document.createElement('div');
     chartdiv.style.width = "500px";
     chartdiv.style.height = "300px";
@@ -17,12 +17,13 @@ function chart_pie(title, description, values, styles, donut=false) {
         },
         tooltip: {
             trigger: 'item',
-            formatter: '{b} : {c} ({d}%)'
+            formatter: (fmtoptions && fmtoptions.value) ? (val) => fmtoptions.value(val) : '{b} : {c} ({d}%)',
         },
         legend: {
             orient: 'vertical',
             left: 0,
-            top: 'center'
+            top: 'center',
+            data: legend ? legend : null,
         },
         series: [
             {
@@ -43,8 +44,11 @@ function chart_pie(title, description, values, styles, donut=false) {
                     fontSize: 14
                 },
                 label: {
-                    formatter: '{c}',
-                    position: 'inside'
+                    valueFormatter: (fmtoptions && fmtoptions.value) ? (val) => fmtoptions.value(val) : null,
+                    formatter: (fmtoptions && fmtoptions.legend) ? (val) => fmtoptions.legend(val) : '{c}',
+                    position: (fmtoptions && fmtoptions.legend) ? null :'inside',
+                    show: true,
+                    labelLine: {show: true}
                 },
                 data: values
             }
