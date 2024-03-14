@@ -96,7 +96,7 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = 12) {
         const opt = document.createElement('option');
         opt.value = val;
         opt.text = val > 24 ? Math.floor(val/24) + " days" : val;
-        opt.selected = project ? true : false;
+        opt.selected = project === val ? true : false;
         opt.addEventListener('click', () => {
             if (val.includes(" ")) {
                 if (hours) location.hash = `#ghactions&hours=${hours}`;
