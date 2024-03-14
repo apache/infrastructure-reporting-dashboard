@@ -30,6 +30,7 @@ function chart_pie(title, description, values, styles, donut=false, fmtoptions =
                 type: 'pie',
                 radius: donut? ['30%', '60%'] : '80%',
                 left: '15%',
+                top: title.includes("\n") ? 30 * (title.match(/\n/)||[]).length : 0,
                 itemStyle: donut ? {
                     borderRadius: 10,
                         borderColor: '#fff',
