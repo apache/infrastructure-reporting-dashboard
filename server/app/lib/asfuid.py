@@ -42,6 +42,7 @@ class Credentials:
             self.projects = quart.session["projects"]
             self.pmcs = quart.session["pmcs"]
             self.root = quart.session["isRoot"]
+            self.member = quart.session["isMember"]
         else:
             raise AssertionError("User not logged in via Web UI")
 

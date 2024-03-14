@@ -33,7 +33,7 @@ async def show_gha_stats(form_data):
     selfhosted = form_data.get("selfhosted", "false")  # if 'true', count self-hosted time
     try:
         session = asfuid.Credentials()
-        assert session.root or project in session.projects
+        assert (session.root or session.member) or project in session.projects
     except AssertionError:
         return quart.Response(status=403, response="Access denied")
     if hours > MAX_BUILD_SPAN:
