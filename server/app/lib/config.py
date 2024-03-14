@@ -50,6 +50,14 @@ class ReportingConfiguration:
         self.__dict__.update(yml)
 
 
+class GitHubConfiguration:
+    def __init__(self, yml: dict):
+        assert yml, f"No github configuration directives could be found in {CONFIG_FILE}!"
+        self.__dict__.update(yml)
+
+
+
 cfg_yaml = yaml.safe_load(open(CONFIG_FILE, "r"))
 server = ServerConfiguration(cfg_yaml.get("server", {}))
 reporting = ReportingConfiguration(cfg_yaml.get("reporting", {}))
+github = GitHubConfiguration(cfg_yaml.get("github", {}))

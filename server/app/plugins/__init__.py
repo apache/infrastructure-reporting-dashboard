@@ -52,3 +52,4 @@ from . import jirastats
 from . import uptime
 from . import mailstats
 from . import downloads
+from . import ghascanner
