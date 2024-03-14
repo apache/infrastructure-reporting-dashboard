@@ -21,6 +21,7 @@ import quart
 from ..lib import middleware, asfuid
 from ..plugins import ghascanner
 import time
+import json
 
 MAX_BUILD_SPAN = 720  # Max 720 hours worth of data per grab
 DEFAULT_BUILD_SPAN = 168  # Default to one week of data
@@ -29,6 +30,7 @@ async def show_gha_stats(form_data):
     """GitHub Actions stats"""
     hours = int(form_data.get("hours", DEFAULT_BUILD_SPAN))
     project = form_data.get("project", "")
+    selfhosted = form_data.get("selfhosted", "false")  # if 'true', count self-hosted time
     try:
         session = asfuid.Credentials()
         assert session.root or project in session.projects
@@ -50,6 +52,12 @@ async def show_gha_stats(form_data):
             break
         for xrow in rowset:
             row = dict(xrow)
+            # Discount self-hosted unless asked for
+            if selfhosted != "true":
+                jobs = json.loads(row["jobs"])
+                for job in jobs:
+                    if any("self-hosted" in label for label in job["labels"]):
+                        row["seconds_used"] -= job["job_duration"]
             if not project:  # If not viewing a single project, dismiss the jobs data to cut down on traffic
                 row.pop('jobs', '')
             rows.append(row)
