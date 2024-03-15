@@ -10,7 +10,7 @@ async function seed_ghactions() {
     if (qs.get("limit")) qsnew.set("limit", qs.get("limit"));
     ghactions_json = await (await fetch(`/api/ghactions?${qsnew.toString()}`)).json();
     ghactions_json.all_projects.unshift("All projects");
-    show_ghactions(qs.get("project"), qs.get("hours")||DEFAULT_HOURS, parseInt(qs.get("limit")||DEFAULT_LIMIT));
+    show_ghactions(qs.get("project"), parseInt(qs.get("hours")||DEFAULT_HOURS), parseInt(qs.get("limit")||DEFAULT_LIMIT));
 }
 
 async function render_dashboard_ghactions() {
@@ -93,14 +93,14 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT) {
         const opt = document.createElement('option');
         opt.value = val;
         opt.text = "Past " + (val > 24 ? Math.floor(val/24) + " days" : val + " hours");
-        opt.selected = val == hours ? true : false;
-        opt.addEventListener('click', () => {
-            hours = val;
-            setHash(project, hours, topN);
-            seed_ghactions();
-        })
+        opt.selected = val === hours;
         hourpicker.appendChild(opt);
     }
+    hourpicker.addEventListener('change', (e) => {
+        hours = e.target.value;
+        setHash(project, hours, topN);
+        seed_ghactions();
+    })
 
     const projectpicker = document.createElement('select');
     projectpicker.style.marginRight = "20px";
@@ -108,14 +108,15 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT) {
         const opt = document.createElement('option');
         opt.value = val;
         opt.text = val;
-        opt.selected = project === val ? true : false;
-        opt.addEventListener('click', () => {
-            project = val.includes(" ") ? null : val;
-            setHash(project, hours, topN);
-            seed_ghactions();
-        })
+        opt.selected = project === val;
         projectpicker.appendChild(opt);
     }
+    projectpicker.addEventListener('change', (e) => {
+        let val = e.target.value;
+        project = val.includes(" ") ? null : val;
+        setHash(project, hours, topN);
+        seed_ghactions();
+    })
 
     const limitpicker = document.createElement('select');
     limitpicker.style.marginRight = "20px";
@@ -123,14 +124,14 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT) {
         const opt = document.createElement('option');
         opt.value = val;
         opt.text = "Top " + val;
-        opt.selected = val === topN ? true : false;
-        opt.addEventListener('click', () => {
-            topN = val;
-            setHash(project, hours, topN);
-            seed_ghactions();
-        })
+        opt.selected = val === topN;
         limitpicker.appendChild(opt);
     }
+    limitpicker.addEventListener('change', (e) => {
+        topN = e.target.value;
+        setHash(project, hours, topN);
+        seed_ghactions();
+    })
 
     outer_chart_area.appendChild(document.createElement('br'))
     outer_chart_area.appendChild(projectpicker)
