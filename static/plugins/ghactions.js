@@ -37,7 +37,7 @@ function setHash(project, hours, limit, group) {
 
 
 async function click_gha_project(params, old_project, hours, limit, group) {
-    if (params.name !== DEFAULT_OTHERS_GHA && !old_project) { // If on global view and we click a project name, show only that project.
+    if (params && params.name && params.name !== DEFAULT_OTHERS_GHA && !old_project) { // If on global view and we click a project name, show only that project.
         setHash(params.name, hours, limit, group);
         await seed_ghactions();
     }
