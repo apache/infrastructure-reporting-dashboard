@@ -1,4 +1,4 @@
-function chart_pie(title, description, values, styles, donut=false, fmtoptions = null, legend = null) {
+function chart_pie(title, description, values, styles, donut=false, fmtoptions = null, legend = null, onclick=null) {
     const chartdiv = document.createElement('div');
     chartdiv.style.width = "500px";
     chartdiv.style.height = "300px";
@@ -58,6 +58,7 @@ function chart_pie(title, description, values, styles, donut=false, fmtoptions =
 
     var myChart = echarts.init(chartdiv, sys_theme);
     myChart.setOption(chart_pie_option);
+    if (onclick) myChart.on("click", onclick);
 
     const outerdiv = document.createElement('div');
 
