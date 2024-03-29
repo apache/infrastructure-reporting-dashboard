@@ -33,6 +33,7 @@ CREATE_RUNS_DB = """CREATE TABLE "runs" (
     "repo"	TEXT NOT NULL,
     "workflow_id" INTEGER NOT NULL,
     "workflow_name"	TEXT,
+    "workflow_path"	TEXT,
     "seconds_used"	INTEGER NOT NULL,
     "run_start"	INTEGER NOT NULL,
     "run_finish"	INTEGER NOT NULL,
