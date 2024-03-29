@@ -34,6 +34,14 @@ function setHash(project, hours, limit, group) {
     location.hash = newHash;
 }
 
+
+async function click_gha_project(params, old_project, hours, limit, group) {
+    if (params.name && !old_project) { // If on global view and we click a project name, show only that project.
+        setHash(params.name, hours, limit, group);
+        await seed_ghactions();
+    }
+}
+
 function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, group = DEFAULT_GROUP) {
     let project_txt = project ? project : "All projects";
     if (!project) group = DEFAULT_GROUP
@@ -92,7 +100,7 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
         fmtoptions={
             value: (val) => `${val.data.name}: ${seconds_to_text(val.data.value)}, or ${Math.round(val.data.value/(hours*3600))} FT runner(s)`,
             legend: (val) => `${val.data.name}: \n${((val.data.value/total_seconds)*100).toFixed(2)}%`
-        });
+        }, legend=null, onclick=(params) => click_gha_project(params, project, hours, topN, group));
     donut_recipients.style.maxWidth = "1000px";
     donut_recipients.style.height = "500px";
     outer_chart_area.appendChild(donut_recipients);
