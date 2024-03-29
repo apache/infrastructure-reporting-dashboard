@@ -139,6 +139,12 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
         seed_ghactions();
     })
 
+
+    outer_chart_area.appendChild(document.createElement('br'))
+    outer_chart_area.appendChild(projectpicker)
+    outer_chart_area.appendChild(hourpicker)
+    outer_chart_area.appendChild(limitpicker)
+
     // This option is only available when viewing a single project
     if (project) {
         const groupby = document.createElement('select');
@@ -155,11 +161,8 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
             setHash(project, hours, topN, group);
             seed_ghactions();
         })
+        outer_chart_area.appendChild(groupby)
     }
-    outer_chart_area.appendChild(document.createElement('br'))
-    outer_chart_area.appendChild(projectpicker)
-    outer_chart_area.appendChild(hourpicker)
-    outer_chart_area.appendChild(limitpicker)
-    outer_chart_area.appendChild(groupby)
+
 
 }
