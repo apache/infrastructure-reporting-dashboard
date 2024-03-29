@@ -71,7 +71,8 @@ async def gather_stats(payload):
             async with hc.get(url[:-5], headers=headers) as req:
                 if req.status == 200:
                     workflow_data = await req.json()
-                    workflow_name = workflow_data.get("name", "Unknown")
+                    workflow_name = workflow_data.get("name", "Unknown")  # The name of the workflow, e.g. "CI Unit Tests" etc
+                    workflow_path = workflow_data.get("path", "")  # The YAML file used for this workflow, e.g. ".github/foo.yml"
                     workflow_id = workflow_data.get("id", 0)
                 else:
                     return
@@ -118,6 +119,7 @@ async def gather_stats(payload):
                             "repo": repo,
                             "workflow_id": workflow_id,
                             "workflow_name": workflow_name,
+                            "workflow_path": workflow_path,
                             "seconds_used": seconds_used,
                             "run_start": earliest_runner,
                             "run_finish": last_finish,
