@@ -2,6 +2,7 @@ let ghactions_json = null;
 const DEFAULT_HOURS = 168;
 const DEFAULT_LIMIT = 15;  // top N items
 const DEFAULT_GROUP = "name"; // Group workflows by name or path
+const DEFAULT_OTHERS_GHA = "(other projects)";
 
 async function seed_ghactions() {
     let qs = new URLSearchParams(document.location.hash);
@@ -36,7 +37,7 @@ function setHash(project, hours, limit, group) {
 
 
 async function click_gha_project(params, old_project, hours, limit, group) {
-    if (params.name && !old_project) { // If on global view and we click a project name, show only that project.
+    if (params.name !== DEFAULT_OTHERS_GHA && !old_project) { // If on global view and we click a project name, show only that project.
         setHash(params.name, hours, limit, group);
         await seed_ghactions();
     }
@@ -86,7 +87,7 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
     if (r_array_sorted.length < r_array.length) {
         const sumval = r_array.reduce((psum, a) => (psum.value ? psum.value : psum) + (r_array_sorted.includes(a) ? 0 : a.value));
         r_array_sorted.push({
-            name: "(other projects)",
+            name: DEFAULT_OTHERS_GHA,
             value: sumval,
             itemStyle: {
                 color: "#999"
