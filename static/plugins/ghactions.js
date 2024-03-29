@@ -53,7 +53,7 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
         if (project) {
             for (const job of JSON.parse(build.jobs)) {
                 // Group by workflow name or the actions .yml file used
-                const groupkey = (group === "name") ? job.name : (ghactions_json.workflow_path||"unknown.yml");
+                const groupkey = (group === "name") ? job.name : (build.workflow_path||"unknown.yml");
                 projects_by_time[groupkey] = (projects_by_time[groupkey] ? projects_by_time[groupkey] : 0) + job.job_duration
             }
         }
