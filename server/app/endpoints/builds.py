@@ -25,17 +25,21 @@ import json
 
 MAX_BUILD_SPAN = 720  # Max 720 hours worth of data per grab
 DEFAULT_BUILD_SPAN = 168  # Default to one week of data
+
+
 @asfuid.session_required
 async def show_gha_stats(form_data):
     """GitHub Actions stats"""
     hours = int(form_data.get("hours", DEFAULT_BUILD_SPAN))
     project = form_data.get("project", "")
     selfhosted = form_data.get("selfhosted", "false")  # if 'true', count self-hosted time
-    try:
-        session = asfuid.Credentials()
-        assert (session.root or session.member) or project in session.projects
-    except AssertionError:
-        return quart.Response(status=403, response="Access denied")
+    session = asfuid.Credentials()
+    if project:
+        try:
+            assert session.root or project in session.projects
+        except AssertionError:
+            return quart.Response(status=403,
+                                  response=f"Access denied: You do not have access to view statistics for {project}")
     if hours > MAX_BUILD_SPAN:
         hours = MAX_BUILD_SPAN
     start_from = time.time() - (hours * 3600)
@@ -52,6 +56,9 @@ async def show_gha_stats(form_data):
             break
         for xrow in rowset:
             row = dict(xrow)
+            if (project and row["project"] != project) or (
+                    not project and row["project"] not in session.projects) and not session.root:
+                continue
             # Discount self-hosted unless asked for
             if selfhosted != "true":
                 jobs = json.loads(row["jobs"])
