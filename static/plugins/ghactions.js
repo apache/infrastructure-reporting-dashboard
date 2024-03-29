@@ -12,7 +12,7 @@ async function seed_ghactions() {
     if (qs.get("group")) qsnew.set("group", qs.get("group"));
     ghactions_json = await (await fetch(`/api/ghactions?${qsnew.toString()}`)).json();
     ghactions_json.all_projects.unshift("All projects");
-    show_ghactions(qs.get("project"), parseInt(qs.get("hours")||DEFAULT_HOURS), parseInt(qs.get("limit")||DEFAULT_LIMIT, qs.get("group")||DEFAULT_GROUP));
+    show_ghactions(qs.get("project"), parseInt(qs.get("hours")||DEFAULT_HOURS), parseInt(qs.get("limit")||DEFAULT_LIMIT), qs.get("group")||DEFAULT_GROUP);
 }
 
 async function render_dashboard_ghactions() {
