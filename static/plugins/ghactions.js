@@ -52,9 +52,14 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
         if (project && project !== build.project) continue
         if (project) {
             for (const job of JSON.parse(build.jobs)) {
+                // Skip self-hosted job durations by setting them to 0 seconds.
+                let jd = job.job_duration;
+                for (const label of job.labels||[]) {
+                    if (label.includes("self-hosted")) jd = 0;
+                }
                 // Group by workflow name or the actions .yml file used
                 const groupkey = (group === "name") ? job.name : (build.workflow_path||"unknown.yml");
-                projects_by_time[groupkey] = (projects_by_time[groupkey] ? projects_by_time[groupkey] : 0) + job.job_duration
+                projects_by_time[groupkey] = (projects_by_time[groupkey] ? projects_by_time[groupkey] : 0) + jd;
             }
         }
         else {
