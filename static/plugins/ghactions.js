@@ -1,6 +1,7 @@
 let ghactions_json = null;
 const DEFAULT_HOURS = 168;
 const DEFAULT_LIMIT = 15;  // top N items
+const DEFAULT_GROUP = "name"; // Group workflows by name or path
 
 async function seed_ghactions() {
     let qs = new URLSearchParams(document.location.hash);
@@ -8,9 +9,10 @@ async function seed_ghactions() {
     if (qs.get("project")) qsnew.set("project", qs.get("project"));
     if (qs.get("hours")) qsnew.set("hours", qs.get("hours"));
     if (qs.get("limit")) qsnew.set("limit", qs.get("limit"));
+    if (qs.get("group")) qsnew.set("group", qs.get("group"));
     ghactions_json = await (await fetch(`/api/ghactions?${qsnew.toString()}`)).json();
     ghactions_json.all_projects.unshift("All projects");
-    show_ghactions(qs.get("project"), parseInt(qs.get("hours")||DEFAULT_HOURS), parseInt(qs.get("limit")||DEFAULT_LIMIT));
+    show_ghactions(qs.get("project"), parseInt(qs.get("hours")||DEFAULT_HOURS), parseInt(qs.get("limit")||DEFAULT_LIMIT, qs.get("group")||DEFAULT_GROUP));
 }
 
 async function render_dashboard_ghactions() {
@@ -23,16 +25,18 @@ function seconds_to_text(seconds) {
     return `${hours}h${minutes}m`;
 }
 
-function setHash(project, hours, limit) {
+function setHash(project, hours, limit, group) {
     let newHash = "#ghactions";
     if (project) newHash += "&project=" + project;
     if (hours) newHash += "&hours=" + hours;
     if (limit) newHash += "&limit=" + limit;
+    if (group) newHash += "&group=" + group;
     location.hash = newHash;
 }
 
-function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT) {
+function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, group = DEFAULT_GROUP) {
     let project_txt = project ? project : "All projects";
+    if (!project) group = DEFAULT_GROUP
     document.getElementById('page_title').innerText = `GitHub Actions Statistics, ${project_txt}`;
     document.getElementById('page_description').innerText = "";
     const outer_chart_area = document.getElementById('chart_area');
@@ -48,7 +52,9 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT) {
         if (project && project !== build.project) continue
         if (project) {
             for (const job of JSON.parse(build.jobs)) {
-                projects_by_time[job.name] = (projects_by_time[job.name] ? projects_by_time[job.name] : 0) + job.job_duration
+                // Group by workflow name or the actions .yml file used
+                const groupkey = (group === "name") ? job.name : (ghactions_json.workflow_path||"unknown.yml");
+                projects_by_time[groupkey] = (projects_by_time[groupkey] ? projects_by_time[groupkey] : 0) + job.job_duration
             }
         }
         else {
@@ -98,7 +104,7 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT) {
     }
     hourpicker.addEventListener('change', (e) => {
         hours = e.target.value;
-        setHash(project, hours, topN);
+        setHash(project, hours, topN, group);
         seed_ghactions();
     })
 
@@ -114,7 +120,7 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT) {
     projectpicker.addEventListener('change', (e) => {
         let val = e.target.value;
         project = val.includes(" ") ? null : val;
-        setHash(project, hours, topN);
+        setHash(project, hours, topN, group);
         seed_ghactions();
     })
 
@@ -129,13 +135,31 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT) {
     }
     limitpicker.addEventListener('change', (e) => {
         topN = e.target.value;
-        setHash(project, hours, topN);
+        setHash(project, hours, topN, group);
         seed_ghactions();
     })
 
+    // This option is only available when viewing a single project
+    if (project) {
+        const groupby = document.createElement('select');
+        groupby.style.marginRight = "20px";
+        for (const val of ['name', 'path']) {
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.text = "Group workflows by " + val;
+            opt.selected = val === group;
+            groupby.appendChild(opt);
+        }
+        groupby.addEventListener('change', (e) => {
+            group = e.target.value;
+            setHash(project, hours, topN, group);
+            seed_ghactions();
+        })
+    }
     outer_chart_area.appendChild(document.createElement('br'))
     outer_chart_area.appendChild(projectpicker)
     outer_chart_area.appendChild(hourpicker)
     outer_chart_area.appendChild(limitpicker)
+    outer_chart_area.appendChild(groupby)
 
 }
