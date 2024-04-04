@@ -71,7 +71,7 @@ async function OAuthGate(callback, oauth_optional=false) {
         // Construct OAuth URL and redirect to it
         const state = uuid();
         const OAuthURL = encodeURIComponent(`https://${document.location.hostname}/?action=oauth&state=${state}`);
-        document.location.href = `https://oauth.apache.org/oauth?redirect_uri=${OAuthURL}&state=${state}`;
+        document.location.href = `https://oauth.apache.org/auth?redirect_uri=${OAuthURL}&state=${state}`;
     } else if (session.status === 200) { // Found a working session
         const preferences = await session.json();
         const ue = document.getElementById('useremail');
