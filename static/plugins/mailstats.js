@@ -11,7 +11,7 @@ async function render_dashboard_mailstats() {
 
 function show_mailstats(hostname="collated") {
     document.getElementById('page_title').innerText = `Mail Transfer Statistics, ${hostname}`;
-    document.getElementById('page_description').innerText = "";
+    document.getElementById('page_description').innerText = "This page is only available to infrastructure staff. If you see a blank chart, that is why.";
     const outer_chart_area = document.getElementById('chart_area');
     outer_chart_area.innerText = "";
 
