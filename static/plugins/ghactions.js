@@ -47,7 +47,7 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
     let project_txt = project ? project : "All projects";
     if (!project) group = DEFAULT_GROUP
     document.getElementById('page_title').innerText = `GitHub Actions Statistics, ${project_txt}`;
-    document.getElementById('page_description').innerText = "";
+    document.getElementById('page_description').innerText = "This page shows the GitHub Actions usage for projects you are a part of. If you do not see any data here, your project is likely not using GitHub Actions. For the time being, only paid runs are shown. Self-hosted runs will be added at a later date.";
     const outer_chart_area = document.getElementById('chart_area');
     outer_chart_area.innerText = "";
 
