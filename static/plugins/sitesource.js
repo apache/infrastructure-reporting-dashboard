@@ -107,6 +107,7 @@ async function render_dashboard_sitesource() {
             if (!uses_asfyaml) {
                 const not_asfyaml = document.createElement('span');
                 not_asfyaml.innerText = 'not .asf.yaml';
+                not_asfyaml.title = "This website repository does not yet use .asf.yaml for publishing. Any repository updates will not be synchronized to the official website until .asf.yaml is set up for publishing."
                 not_asfyaml.className = 'badge text-bg-danger ms-2';
                 source.appendChild(not_asfyaml);
             }
