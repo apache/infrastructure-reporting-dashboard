@@ -72,10 +72,10 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
                 }
                 // Group by workflow name or the actions .yml file used
                 const groupkey = (group === "name") ? job.name : (build.workflow_path||"unknown.yml");
-                projects_by_time[groupkey] = (projects_by_time[groupkey] ? projects_by_time[groupkey] : 0) + jd;
+                if (jd) projects_by_time[groupkey] = (projects_by_time[groupkey] ? projects_by_time[groupkey] : 0) + jd;
             }
         }
-        else {
+        else if (build.seconds_used) {
             projects_by_time[build.project] = (projects_by_time[build.project] ? projects_by_time[build.project] : 0) + build.seconds_used;
         }
         total_seconds += build.seconds_used;
