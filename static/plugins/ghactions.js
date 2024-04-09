@@ -101,12 +101,12 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
     const legends = r_array.map((x) => x.name);
 
     const timetxt = hours > 24 ? Math.floor(hours/24) + " days" : hours + " hours";
-    const donut_recipients = chart_pie(`GitHub Actions Build Time Used, past ${timetxt}.\nTotal usage: ${Math.round(total_seconds/60).pretty()} minutes, or ${Math.round(total_seconds/(hours*3600))} FT runners. Estimated credit use: \$${(cost_per_runner_minute_public*total_seconds/60).pretty()}`, "", r_array_sorted, {width: "1000px", height: "500px"}, donut=false,
+    const donut_recipients = chart_pie(`GitHub Actions Build Time Used, past ${timetxt}.\nTotal usage: ${Math.round(total_seconds/60).pretty()} minutes, or ${Math.round(total_seconds/(hours*3600))} FT runners. Estimated credit use: \$${(cost_per_runner_minute_public*total_seconds/60).pretty()}`, "", r_array_sorted, {width: "1240px", height: "500px"}, donut=false,
         fmtoptions={
             value: (val) => `${val.data.name}: ${seconds_to_text(val.data.value)}, or ${Math.round(val.data.value/(hours*3600))} FT runner(s)`,
             legend: (val) => `${val.data.name}: \n${((val.data.value/total_seconds)*100).toFixed(2)}%`
         }, legend=null, onclick=(params) => click_gha_project(params, project, hours, topN, group));
-    donut_recipients.style.maxWidth = "1000px";
+    donut_recipients.style.maxWidth = "1240px";
     donut_recipients.style.height = "500px";
     outer_chart_area.appendChild(donut_recipients);
 
