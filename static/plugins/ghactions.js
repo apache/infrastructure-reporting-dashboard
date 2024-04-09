@@ -3,7 +3,7 @@ const DEFAULT_HOURS = 168;
 const DEFAULT_LIMIT = 15;  // top N items
 const DEFAULT_GROUP = "name"; // Group workflows by name or path
 const DEFAULT_OTHERS_GHA = "(other projects)";
-
+const DEFAULT_OTHERS_GHA_SINGLE = "(other builds)";
 async function seed_ghactions() {
     let qs = new URLSearchParams(document.location.hash);
     let qsnew = new URLSearchParams();
@@ -91,7 +91,7 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
     if (r_array_sorted.length < r_array.length) {
         const sumval = r_array.reduce((psum, a) => (psum.value ? psum.value : psum) + (r_array_sorted.includes(a) ? 0 : a.value));
         r_array_sorted.push({
-            name: DEFAULT_OTHERS_GHA,
+            name: project ? DEFAULT_OTHERS_GHA_SINGLE : DEFAULT_OTHERS_GHA,
             value: sumval,
             itemStyle: {
                 color: "#999"
