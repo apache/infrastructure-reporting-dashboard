@@ -11,9 +11,10 @@ async function seed_ghactions() {
     if (qs.get("hours")) qsnew.set("hours", qs.get("hours"));
     if (qs.get("limit")) qsnew.set("limit", qs.get("limit"));
     if (qs.get("group")) qsnew.set("group", qs.get("group"));
+    if (qs.get("selfhosted")) qsnew.set("selfhosted", qs.get("selfhosted"));
     ghactions_json = await (await fetch(`/api/ghactions?${qsnew.toString()}`)).json();
     ghactions_json.all_projects.unshift("All projects");
-    show_ghactions(qs.get("project"), parseInt(qs.get("hours")||DEFAULT_HOURS), parseInt(qs.get("limit")||DEFAULT_LIMIT), qs.get("group")||DEFAULT_GROUP);
+    show_ghactions(qs.get("project"), parseInt(qs.get("hours")||DEFAULT_HOURS), parseInt(qs.get("limit")||DEFAULT_LIMIT), qs.get("group")||DEFAULT_GROUP, qs.get("selfhosted")||false);
 }
 
 async function render_dashboard_ghactions() {
@@ -26,12 +27,13 @@ function seconds_to_text(seconds) {
     return `${hours}h${minutes}m`;
 }
 
-function setHash(project, hours, limit, group) {
+function setHash(project, hours, limit, group, selfhosted) {
     let newHash = "#ghactions";
     if (project) newHash += "&project=" + project;
     if (hours) newHash += "&hours=" + hours;
     if (limit) newHash += "&limit=" + limit;
     if (group) newHash += "&group=" + group;
+    if (selfhosted) newHash += "&selfhosted=true";
     location.hash = newHash;
 }
 
@@ -43,7 +45,7 @@ async function click_gha_project(params, old_project, hours, limit, group) {
     }
 }
 
-function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, group = DEFAULT_GROUP) {
+function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, group = DEFAULT_GROUP, selfhosted = false) {
     let project_txt = project ? project : "All projects";
     if (!project) group = DEFAULT_GROUP
     document.getElementById('page_title').innerText = `GitHub Actions Statistics, ${project_txt}`;
@@ -61,10 +63,12 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
         if (project && project !== build.project) continue
         if (project) {
             for (const job of JSON.parse(build.jobs)) {
-                // Skip self-hosted job durations by setting them to 0 seconds.
+                // Skip self-hosted job durations by setting them to 0 seconds, unless we mean to include them.
                 let jd = job.job_duration;
-                for (const label of job.labels||[]) {
-                    if (label.includes("self-hosted")) jd = 0;
+                if (!selfhosted) {
+                    for (const label of job.labels || []) {
+                        if (label.includes("self-hosted")) jd = 0;
+                    }
                 }
                 // Group by workflow name or the actions .yml file used
                 const groupkey = (group === "name") ? job.name : (build.workflow_path||"unknown.yml");
@@ -118,7 +122,7 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
     }
     hourpicker.addEventListener('change', (e) => {
         hours = e.target.value;
-        setHash(project, hours, topN, group);
+        setHash(project, hours, topN, group, selfhosted);
         seed_ghactions();
     })
 
@@ -149,10 +153,9 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
     }
     limitpicker.addEventListener('change', (e) => {
         topN = e.target.value;
-        setHash(project, hours, topN, group);
+        setHash(project, hours, topN, group, selfhosted);
         seed_ghactions();
     })
-
 
     outer_chart_area.appendChild(document.createElement('br'))
     outer_chart_area.appendChild(projectpicker)
@@ -176,6 +179,24 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
             seed_ghactions();
         })
         outer_chart_area.appendChild(groupby)
+    }
+
+    // include self-hosted? Only valid in single project view
+    if (project) {
+        const shcheck = document.createElement('input');
+        shcheck.type = "checkbox";
+        shcheck.id = "shosted";
+        shcheck.checked = !! selfhosted;
+        shcheck.addEventListener('change', (e) => {
+            selfhosted = e.target.checked;
+            setHash(project, hours, topN, group, selfhosted);
+            seed_ghactions();
+        });
+        const lbl = document.createElement('label');
+        lbl.setAttribute('for', 'shosted');
+        lbl.innerText = "Include self-hosted runners";
+        outer_chart_area.appendChild(shcheck);
+        outer_chart_area.appendChild(lbl);
     }
 
 
