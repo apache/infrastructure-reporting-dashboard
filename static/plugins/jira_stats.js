@@ -208,7 +208,7 @@ function render_jira_stats(assignee, timespan) {
     page_title.innerText += `, past ${timespan} days`
 
     const page_description = document.getElementById('page_description');
-    page_description.innerText = "Some intro about Jira stats here....and so on";
+    page_description.innerText = "This page is used for tracking Jira tickets related to infrastructure work. It is only available to the infrastructure team.";
 
 
     const total_progress = chart_progress(
