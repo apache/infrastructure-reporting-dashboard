@@ -113,7 +113,7 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
     // filters
     const hourpicker = document.createElement('select');
     hourpicker.style.marginRight = "20px";
-    for (const val of [1, 2, 4, 8, 12, 24, 168, 720]) {
+    for (const val of [1, 2, 4, 8, 12, 24, 120, 168, 720]) {
         const opt = document.createElement('option');
         opt.value = val;
         opt.text = "Past " + (val > 24 ? Math.floor(val/24) + " days" : val + " hours");
