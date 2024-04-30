@@ -71,7 +71,8 @@ async def show_gha_stats(form_data):
 
     start_from = time.time() - (hours * 3600)
     rows = []
-    for row in BUILDS_CACHE:
+    for original_row in BUILDS_CACHE:
+        row = original_row.copy()  # We MAY pop 'jobs', so copy the dict, don't modify the original
         if row["run_start"] < start_from or row["run_finish"] < start_from:
             continue
         if (project and row["project"] != project) or (
@@ -79,7 +80,6 @@ async def show_gha_stats(form_data):
             continue
         # Discount self-hosted unless asked for
         if selfhosted != "true":
-
             for job in row.get("jobs", []):
                 if any("self-hosted" in label for label in job["labels"]):
                     row["seconds_used"] -= job["job_duration"]
