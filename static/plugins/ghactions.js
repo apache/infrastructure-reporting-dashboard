@@ -62,7 +62,7 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
     for (const build of ghactions_json.builds) {
         if (project && project !== build.project) continue
         if (project) {
-            for (const job of JSON.parse(build.jobs)) {
+            for (const job of build.jobs) {
                 // Skip self-hosted job durations by setting them to 0 seconds, unless we mean to include them.
                 let jd = job.job_duration;
                 if (!selfhosted) {
