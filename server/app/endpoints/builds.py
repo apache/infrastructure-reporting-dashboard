@@ -29,11 +29,13 @@ DEFAULT_BUILD_SPAN = 168  # Default to one week of data
 BUILDS_CACHE = []
 
 
-async def fetch_n_days(hours=DEFAULT_BUILD_SPAN):
+async def fetch_n_days(hours=MAX_BUILD_SPAN):
     """Fetches the last N (seven) days of builds into memory for faster processing"""
     while True:
         temp_cache = []
         start_from = time.time() - (hours * 3600)
+        # After the default span, we will still grab data, but cut away the heavy 'jobs' entry.
+        job_data_cutoff = time.time() - (DEFAULT_BUILD_SPAN * 3600)
         stmt = "SELECT * FROM `runs` WHERE (`run_start` >= ? OR `run_finish` >= ?)"
         values = [start_from, start_from]
         ghascanner.db.cursor.execute(stmt, values)
@@ -43,7 +45,12 @@ async def fetch_n_days(hours=DEFAULT_BUILD_SPAN):
                 break
             for row in rowset:
                 row_as_dict = dict(row)
-                row_as_dict["jobs"] = json.loads(row_as_dict["jobs"])
+                # If the job is too old, set 'jobs' entry to empty array, to save memory.
+                # We generally will not need the job data for older entries.
+                if row_as_dict["run_finish"] < job_data_cutoff:
+                    row_as_dict["jobs"] = []
+                else:
+                    row_as_dict["jobs"] = json.loads(row_as_dict["jobs"])
                 temp_cache.append(row_as_dict)
         # Wipe cache, set to new bits
         BUILDS_CACHE.clear()
