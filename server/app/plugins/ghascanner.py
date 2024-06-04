@@ -160,5 +160,5 @@ async def list_projects():
 
 
 plugins.root.register(
-    scan_builds, list_projects, slug="ghactions", title="GitHub Actions Usage", icon="bi-envelope-exclamation-fill", private=True
+    scan_builds, list_projects, slug="ghactions", title="GitHub Actions Usage", icon="bi-github", private=True
 )
