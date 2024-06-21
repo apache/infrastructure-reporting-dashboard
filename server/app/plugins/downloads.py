@@ -50,6 +50,12 @@ INTERNAL_AGENTS = {
 # Common crawlers to ignore in stats.
 IGNORED_BOTS = ("bingbot", "amazonbot", "diffbot", "googlebot", "slurp", "yandex", "baidu", )
 
+# Ignore certain IPs that are known scanners
+IGNORED_IPS = ( 
+    '18.233.217.21',  # Unknown AWS machine, does millions of downloads
+    '93.159.231.13',  # Kaspersky Labs, testing binaries
+)
+
 # Different indices have different field names, account for it here:
 FIELD_NAMES = {
     "fastly": { # the index prefix
@@ -118,6 +124,8 @@ async def make_query(provider, field_names, project, duration, filters, max_hits
         q = q.exclude("terms", **{field_names["useragent"]+".keyword": ["", "-"]})
     if uas_to_ignore:
         q = q.exclude("terms", **{field_names["useragent"]: uas_to_ignore})
+    # Exclude binary scanner machines
+    q = q.exclude("terms", **{"client_ip.keyword": list(IGNORED_IPS)})
     
     # TODO: Make this not extremely slow. For now, we'll filter in post.
     #if "no_query" in filters:  # Don't show results with query strings in them
