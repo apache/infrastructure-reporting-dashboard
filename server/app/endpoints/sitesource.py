@@ -17,23 +17,24 @@
 # under the License.
 """ASF Infrastructure Reporting Dashboard"""
 """Handler for site source page"""
-import quart
+import asfquart
 from ..lib import middleware, config
 from .. import plugins
 
 site_source_url = middleware.CachedJson("https://www.apache.org/site-sources.json", expiry=1800)
 
 
-async def process(form_data):
-    return await site_source_url.json
-
-
-quart.current_app.add_url_rule(
+@asfquart.APP.route(
     "/api/sitesource",
     methods=[
         "GET",  # Session get/delete
     ],
-    view_func=middleware.glued(process),
 )
+async def process():
+    form_data = await asfquart.utils.formdata()
+    session = await asfquart.session.read()
+    return await site_source_url.json
+
+
 
 plugins.root.register(slug="sitesource", title="Site Source Checker", icon="bi-share-fill")

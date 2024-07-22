@@ -33,7 +33,16 @@ OAUTH_URL_INIT = "https://oauth.apache.org/auth?state=%s&redirect_uri=%s"
 OAUTH_URL_CALLBACK = "https://oauth.apache.org/token?code=%s"
 
 
-async def process(form_data):
+@asfquart.APP.route(
+    "/api/oauth",
+    methods=[
+        "GET",  # OAuth request
+    ],
+)
+async def process():
+    form_data = await asfquart.utils.formdata()
+    session = await asfquart.session.read()
+
     if quart.request.method == "GET":
         code = form_data.get("code")
         state = form_data.get("state")
@@ -67,10 +76,3 @@ async def process(form_data):
             )
 
 
-quart.current_app.add_url_rule(
-    "/api/oauth",
-    methods=[
-        "GET",  # OAuth request
-    ],
-    view_func=middleware.glued(process),
-)

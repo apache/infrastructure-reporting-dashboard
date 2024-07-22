@@ -1,6 +1,5 @@
 # Import each endpoint.
 # note: for dev/test, you may comment-out specific endpoints
-from . import oauth
 from . import session
 from . import jira
 from . import uptime

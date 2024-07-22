@@ -17,23 +17,22 @@
 # under the License.
 """ASF Infrastructure Reporting Dashboard"""
 """Handler for mail stats"""
-import quart
+import asfquart
+from asfquart.auth import Require as R
 from ..lib import middleware, asfuid, config
 from ..plugins import mailstats
 
 
-@asfuid.session_required
-async def process(form_data):
-    creds = asfuid.Credentials()
-    if creds.root:
-        return mailstats.get_stats()
-    return {"nope": "more nope"}
-
-
-quart.current_app.add_url_rule(
+@asfquart.APP.route(
     "/api/mailstats",
     methods=[
         "GET",  # Session get/delete
     ],
-    view_func=middleware.glued(process),
 )
+@asfquart.APP.require(R.root)
+async def process(form_data):
+    form_data = await asfquart.utils.formdata()
+    session = await asfquart.session.read()
+    return mailstats.get_stats()
+
+

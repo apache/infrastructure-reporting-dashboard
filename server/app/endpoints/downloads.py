@@ -18,12 +18,21 @@
 """ASF Infrastructure Reporting Dashboard"""
 
 """Handler for download stats - ported from https://github.com/apache/infrastructure-dlstats"""
-import quart
+import asfquart
 from ..lib import middleware, config, asfuid
 from ..plugins import downloads
 
-@asfuid.session_required
-async def process(form_data):
+@asfquart.APP.route(
+    "/api/downloads",
+    methods=[
+        "GET",  # Session get/delete
+    ],
+)
+@asfquart.auth.require()
+async def process():
+    form_data = await asfquart.utils.formdata()
+    session = await asfquart.session.read()
+
     project = form_data.get("project", "httpd")    # Project/podling to fetch stats for
     duration = form_data.get("duration", 7)        # Timespan to search (in whole days)
     filters = form_data.get("filters", "empty_ua,no_query") # Various search filters
@@ -37,12 +46,5 @@ async def process(form_data):
     return stats
 
 
-quart.current_app.add_url_rule(
-    "/api/downloads",
-    methods=[
-        "GET",  # Session get/delete
-    ],
-    view_func=middleware.glued(process),
-)
 
 

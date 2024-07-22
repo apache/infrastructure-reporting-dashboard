@@ -19,13 +19,20 @@
 import functools
 
 """Handler for uptime stats"""
-import quart
+import asfquart
 from ..lib import middleware, config
 from ..plugins import uptime
 
 
-# @asfuid.session_required
-async def process(form_data):
+@asfquart.APP.route(
+    "/api/uptime",
+    methods=[
+        "GET",  # Session get/delete
+    ],
+)
+async def process():
+    form_data = await asfquart.utils.formdata()
+    session = await asfquart.session.read()
     uptime_stats = uptime.get_stats()
     series = config.reporting.uptime.get("series", {})
     uptime_collated = {}
@@ -75,10 +82,3 @@ async def process(form_data):
     }
 
 
-quart.current_app.add_url_rule(
-    "/api/uptime",
-    methods=[
-        "GET",  # Session get/delete
-    ],
-    view_func=middleware.glued(process),
-)

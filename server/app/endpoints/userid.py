@@ -17,7 +17,6 @@
 # under the License.
 """ASF Infrastructure Reporting Dashboard"""
 """Handler for userID availability/syntax checks"""
-import quart
 from ..lib import middleware, config
 import os
 import yaml
@@ -86,7 +85,15 @@ async def scan_for_userids():
         await asyncio.sleep(SCAN_INTERVAL)
 
 
+@asfquart.APP.route(
+    "/api/userid",
+    methods=[
+        "GET",  # Session get/delete
+    ],
+)
 async def process(form_data):
+    form_data = await asfquart.utils.formdata()
+    session = await asfquart.session.read()
     userid = form_data.get("id")
     # Check syntax validity
     is_valid = userid and VALID_USERID_RE.match(userid) is not None
@@ -110,13 +117,6 @@ async def process(form_data):
     }
 
 
-quart.current_app.add_url_rule(
-    "/api/userid",
-    methods=[
-        "GET",  # Session get/delete
-    ],
-    view_func=middleware.glued(process),
-)
 
 # The userid scan is added as a generic loop. There is no web page for this feature, no need to the plugin registry
-quart.current_app.add_background_task(scan_for_userids)
+@asfquart.APP.add_background_task(scan_for_userids)
