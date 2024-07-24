@@ -18,7 +18,7 @@
 """ASF Infrastructure Reporting Dashboard"""
 """Handler for mail stats"""
 import asfquart
-from asfquart.auth import Require as R
+from asfquart.auth import Requirements as R
 from ..lib import middleware, asfuid, config
 from ..plugins import mailstats
 
@@ -29,7 +29,7 @@ from ..plugins import mailstats
         "GET",  # Session get/delete
     ],
 )
-@asfquart.APP.require(R.root)
+@asfquart.APP.require({R.root})
 async def process(form_data):
     form_data = await asfquart.utils.formdata()
     session = await asfquart.session.read()

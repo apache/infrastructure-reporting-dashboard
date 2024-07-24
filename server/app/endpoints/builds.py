@@ -18,6 +18,7 @@
 """ASF Infrastructure Reporting Dashboard"""
 """Handler for builds data"""
 import asfquart
+from asfquart.auth import Requirements as R
 import asyncio
 from ..lib import middleware, asfuid
 from ..plugins import ghascanner

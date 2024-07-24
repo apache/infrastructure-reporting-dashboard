@@ -29,11 +29,12 @@ STATIC_DIR = os.path.join(os.path.realpath(".."), "static")  # Pre-compile stati
 SECRETS_FILE = "quart-secret.txt"
 
 def main(debug=False):
-    asfquart.construct(__name__, oauth="/api/auth")
+    #asfquart.construct(__name__, oauth="/api/auth")
+    asfquart.construct(__name__)
     asfquart.APP.secret_key = secrets.token_hex()  # For session management
-    asfquart.APP.config[
-        "MAX_CONTENT_LENGTH"
-    ] = config.server.max_content_length  # Ensure upload limits match expectations
+#    asfquart.APP.config[
+#        "MAX_CONTENT_LENGTH"
+#    ] = config.server.max_content_length  # Ensure upload limits match expectations
     asfquart.APP.url_map.converters[
         "filename"
     ] = middleware.FilenameConverter  # Special converter for filename-style vars
@@ -59,7 +60,7 @@ def main(debug=False):
             else:
                 assets.generate_assets(STATIC_DIR, HTDOCS_DIR)
 
-    @app.after_serving
+    @asfquart.APP.after_serving
     async def shutdown():
         """Ensure a clean shutdown of the platform by stopping background tasks"""
         log.log("Shutting down infrastructure reporting dashboard...")
