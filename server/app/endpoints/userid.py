@@ -24,6 +24,7 @@ import psycopg
 import re
 import asyncio
 import asfpy.clitools
+import asfquart
 
 # Dict of existing users from various canonical sources
 existing_users = {
@@ -91,7 +92,7 @@ async def scan_for_userids():
         "GET",  # Session get/delete
     ],
 )
-async def process(form_data):
+async def process_userid(form_data):
     form_data = await asfquart.utils.formdata()
     session = await asfquart.session.read()
     userid = form_data.get("id")
@@ -119,4 +120,4 @@ async def process(form_data):
 
 
 # The userid scan is added as a generic loop. There is no web page for this feature, no need to the plugin registry
-@asfquart.APP.add_background_task(scan_for_userids)
+asfquart.APP.add_background_task(scan_for_userids)

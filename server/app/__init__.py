@@ -32,6 +32,7 @@ def main(debug=False):
     #asfquart.construct(__name__, oauth="/api/auth")
     asfquart.construct(__name__)
     asfquart.APP.secret_key = secrets.token_hex()  # For session management
+
 #    asfquart.APP.config[
 #        "MAX_CONTENT_LENGTH"
 #    ] = config.server.max_content_length  # Ensure upload limits match expectations

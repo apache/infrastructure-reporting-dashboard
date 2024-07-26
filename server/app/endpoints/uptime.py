@@ -30,7 +30,7 @@ from ..plugins import uptime
         "GET",  # Session get/delete
     ],
 )
-async def process():
+async def process_uptime():
     form_data = await asfquart.utils.formdata()
     session = await asfquart.session.read()
     uptime_stats = uptime.get_stats()

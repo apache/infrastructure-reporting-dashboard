@@ -61,13 +61,13 @@ async def fetch_n_days(hours=MAX_BUILD_SPAN):
         await asyncio.sleep(900)
 
 
+@asfquart.auth.require()
 @asfquart.APP.route(
     "/api/ghactions",
     methods=[
         "GET",  # Session get/delete
     ],
 )
-@asfquart.auth.require()
 async def show_gha_stats():
     """GitHub Actions stats"""
     form_data = await asfquart.utils.formdata()
@@ -103,4 +103,4 @@ async def show_gha_stats():
     }
 
 
-@asfquart.APP.add_background_task(fetch_n_days)
+asfquart.APP.add_background_task(fetch_n_days)

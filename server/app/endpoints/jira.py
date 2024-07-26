@@ -18,23 +18,23 @@
 """ASF Infrastructure Reporting Dashboard"""
 """Handler for session operations (view current session, log out)"""
 import asfquart
-from asfquart.auth import Requirements as R
+import asfquart.auth
+import asfquart.session
 from ..lib import middleware, asfuid, config
 from ..plugins import jirastats
 
 
-@asfquart.auth.require({R.root})
-@asfquart.APP.route(
+@asfquart.auth.require
+@asfquart.APP.route( 
     "/api/jira",
     methods=[
         "GET",  # Session get/delete
     ],
 )
-
-async def process():
+async def process_jira():
     form_data = await asfquart.utils.formdata()
     session = await asfquart.session.read()
-
+    action = form_data.get("action")
     if action == "stats":  # Basic stats
         return jirastats.get_issues()
 
