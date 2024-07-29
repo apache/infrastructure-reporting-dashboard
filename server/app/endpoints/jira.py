@@ -24,7 +24,7 @@ from ..lib import middleware, asfuid, config
 from ..plugins import jirastats
 
 
-@asfquart.auth.require
+@asfquart.auth.require({R.root})
 @asfquart.APP.route( 
     "/api/jira",
     methods=[
