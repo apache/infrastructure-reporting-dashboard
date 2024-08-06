@@ -64,9 +64,6 @@ async def fetch_n_days(hours=MAX_BUILD_SPAN):
 @asfquart.auth.require()
 @asfquart.APP.route(
     "/api/ghactions",
-    methods=[
-        "GET",  # Session get/delete
-    ],
 )
 async def show_gha_stats():
     """GitHub Actions stats"""

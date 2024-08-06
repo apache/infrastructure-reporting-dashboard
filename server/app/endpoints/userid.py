@@ -88,13 +88,9 @@ async def scan_for_userids():
 
 @asfquart.APP.route(
     "/api/userid",
-    methods=[
-        "GET",  # Session get/delete
-    ],
 )
 async def process_userid(form_data):
     form_data = await asfquart.utils.formdata()
-    session = await asfquart.session.read()
     userid = form_data.get("id")
     # Check syntax validity
     is_valid = userid and VALID_USERID_RE.match(userid) is not None

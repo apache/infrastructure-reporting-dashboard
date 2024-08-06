@@ -26,9 +26,6 @@ from ..plugins import downloads
 @asfquart.auth.require
 @asfquart.APP.route(
     "/api/downloads",
-    methods=[
-        "GET",  # Session get/delete
-    ],
 )
 async def process_downloads():
     form_data = await asfquart.utils.formdata()

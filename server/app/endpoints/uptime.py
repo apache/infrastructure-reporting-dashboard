@@ -26,9 +26,6 @@ from ..plugins import uptime
 
 @asfquart.APP.route(
     "/api/uptime",
-    methods=[
-        "GET",  # Session get/delete
-    ],
 )
 async def process_uptime():
     form_data = await asfquart.utils.formdata()

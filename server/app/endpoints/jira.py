@@ -28,9 +28,6 @@ from ..plugins import jirastats
 @asfquart.auth.require({R.root})
 @asfquart.APP.route( 
     "/api/jira",
-    methods=[
-        "GET",  # Session get/delete
-    ],
 )
 async def process_jira():
     form_data = await asfquart.utils.formdata()

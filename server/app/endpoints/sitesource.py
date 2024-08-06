@@ -26,9 +26,6 @@ site_source_url = middleware.CachedJson("https://www.apache.org/site-sources.jso
 
 @asfquart.APP.route(
     "/api/sitesource",
-    methods=[
-        "GET",  # Session get/delete
-    ],
 )
 async def process_sitesource():
     form_data = await asfquart.utils.formdata()
