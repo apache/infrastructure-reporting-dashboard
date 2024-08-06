@@ -19,6 +19,7 @@
 """Handler for session operations (view current session, log out)"""
 import asfquart
 import asfquart.auth
+from asfquart.auth import Requirements as R
 import asfquart.session
 from ..lib import middleware, asfuid, config
 from ..plugins import jirastats
