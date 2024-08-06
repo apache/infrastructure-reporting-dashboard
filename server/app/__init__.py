@@ -29,18 +29,9 @@ STATIC_DIR = os.path.join(os.path.realpath(".."), "static")  # Pre-compile stati
 SECRETS_FILE = "quart-secret.txt"
 
 def main(debug=False):
-    #asfquart.construct(__name__, oauth="/api/auth")
     asfquart.construct(__name__)
-    asfquart.APP.secret_key = secrets.token_hex()  # For session management
-
-#    asfquart.APP.config[
-#        "MAX_CONTENT_LENGTH"
-#    ] = config.server.max_content_length  # Ensure upload limits match expectations
-    asfquart.APP.url_map.converters[
-        "filename"
-    ] = middleware.FilenameConverter  # Special converter for filename-style vars
-
-     # Static files (or index.html if requesting a dir listing)
+    
+    # Static files (or index.html if requesting a dir listing)
     @asfquart.APP.route("/<path:path>")
     @asfquart.APP.route("/")
     async def static_files(path="index.html"):

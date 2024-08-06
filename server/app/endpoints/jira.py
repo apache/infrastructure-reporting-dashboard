@@ -21,7 +21,7 @@ import asfquart
 import asfquart.auth
 from asfquart.auth import Requirements as R
 import asfquart.session
-from ..lib import middleware, asfuid, config
+from ..lib import middleware, config
 from ..plugins import jirastats
 
 

@@ -20,7 +20,7 @@
 """Handler for download stats - ported from https://github.com/apache/infrastructure-dlstats"""
 import asfquart
 from asfquart.auth import Requirements as R
-from ..lib import middleware, config, asfuid
+from ..lib import middleware, config
 from ..plugins import downloads
 
 @asfquart.auth.require

@@ -19,7 +19,7 @@
 """Handler for mail stats"""
 import asfquart
 from asfquart.auth import Requirements as R
-from ..lib import middleware, asfuid, config
+from ..lib import middleware, config
 from ..plugins import mailstats
 
 

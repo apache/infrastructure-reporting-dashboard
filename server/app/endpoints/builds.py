@@ -20,7 +20,7 @@
 import asfquart
 from asfquart.auth import Requirements as R
 import asyncio
-from ..lib import middleware, asfuid
+from ..lib import middleware
 from ..plugins import ghascanner
 import time
 import json
