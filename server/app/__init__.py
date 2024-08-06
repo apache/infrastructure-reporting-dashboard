@@ -29,33 +29,33 @@ STATIC_DIR = os.path.join(os.path.realpath(".."), "static")  # Pre-compile stati
 SECRETS_FILE = "quart-secret.txt"
 
 def main(debug=False):
-    asfquart.construct(__name__)
+    APP = asfquart.construct(__name__)
     
     # Static files (or index.html if requesting a dir listing)
-    @asfquart.APP.route("/<path:path>")
-    @asfquart.APP.route("/")
+    @APP.route("/<path:path>")
+    @APP.route("/")
     async def static_files(path="index.html"):
         if path.endswith("/"):
             path += "index.html"
         return await quart.send_from_directory(HTDOCS_DIR, path)
 
-    @asfquart.APP.before_serving
+    @APP.before_serving
     async def load_endpoints():
         """Load all API end points and tasks. This is run before Quart starts serving requests"""
-        async with asfquart.APP.app_context():
+        async with APP.app_context():
             from . import endpoints
             from . import plugins
 
             # Regenerate documentation
             if debug:
-                asfquart.APP.add_background_task(assets.loop, STATIC_DIR, HTDOCS_DIR)
+                APP.add_background_task(assets.loop, STATIC_DIR, HTDOCS_DIR)
             else:
                 assets.generate_assets(STATIC_DIR, HTDOCS_DIR)
 
-    @asfquart.APP.after_serving
+    @APP.after_serving
     async def shutdown():
         """Ensure a clean shutdown of the platform by stopping background tasks"""
         log.log("Shutting down infrastructure reporting dashboard...")
-        asfquart.APP.background_tasks.clear()  # Clear repo polling etc
+        APP.background_tasks.clear()  # Clear repo polling etc
 
-    return asfquart.APP
+    return APP
