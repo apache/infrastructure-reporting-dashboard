@@ -83,7 +83,7 @@ async def show_gha_stats():
         if row["run_start"] < start_from or row["run_finish"] < start_from:
             continue
         if (project and row["project"] != project) or (
-                not project and row["project"] not in session.projects) and not session.root:
+                not project and row["project"] not in session.projects) and not session.isRoot:
             continue
         # Discount self-hosted unless asked for
         if selfhosted != "true":
