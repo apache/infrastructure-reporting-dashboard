@@ -3,14 +3,14 @@ aiohttp
 async-timeout
 hypercorn
 pyyaml~=6.0
-quart~=0.18.4
 rfc3339
 cmarkgfm
 asfpy~=0.49
 ezt~=1.1
-werkzeug~=2.3.6
 python-dateutil
 psycopg[binary]
 elasticsearch==7.13.0
 elasticsearch_dsl==7.3.0
 ua-parser
+asfquart==0.1.5
+numpy==1.26.4
