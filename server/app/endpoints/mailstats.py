@@ -27,7 +27,7 @@ from ..plugins import mailstats
 @asfquart.APP.route(
     "/api/mailstats",
 )
-async def process_mailstats(form_data):
+async def process_mailstats():
     form_data = await asfquart.utils.formdata()
     session = await asfquart.session.read()
     return mailstats.get_stats()
