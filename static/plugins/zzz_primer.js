@@ -46,7 +46,7 @@ function uuid() {
 async function OAuthGate(callback, oauth_optional=false) {
     const QSDict = new URLSearchParams(document.location.search);
     if (QSDict.get('action') === 'oauth') { // OAuth callback?
-        const OAuthResponse = await fetch(`/api/oauth?${QSDict.toString()}`);
+        const OAuthResponse = await fetch(`/auth?${QSDict.toString()}`);
         if (OAuthResponse.status === 200) {
             if (sessionStorageSupported()) {
                 const OriginURL = window.sessionStorage.getItem('ird_origin');
@@ -63,15 +63,15 @@ async function OAuthGate(callback, oauth_optional=false) {
         }
     }
     if (oauth_optional) return
-    const session = await fetch('/api/session');
-    if (session.status === 403) { // No session set for this client yet, run the oauth process
+    const session = await fetch('/auth');
+    if (session.status === 404) { // No session set for this client yet, run the oauth process
         if (sessionStorageSupported()) {
             window.sessionStorage.setItem('ird_origin', document.location.href); // Store where we came from
         }
         // Construct OAuth URL and redirect to it
         const state = uuid();
-        const OAuthURL = encodeURIComponent(`https://${document.location.hostname}/?action=oauth&state=${state}`);
-        document.location.href = `https://oauth.apache.org/auth?redirect_uri=${OAuthURL}&state=${state}`;
+        const OAuthURL = encodeURIComponent(`https://${document.location.hostname}/?action=oauth`);
+        document.location.href = `/auth?login=${OAuthURL}`;
     } else if (session.status === 200) { // Found a working session
         const preferences = await session.json();
         const ue = document.getElementById('useremail');
