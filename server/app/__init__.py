@@ -18,6 +18,7 @@
 """ASF Infra Reporting Dashboard - Plugins"""
 
 import secrets
+import asfquart
 import quart
 from .lib import config, log, middleware, assets
 import os
@@ -28,45 +29,33 @@ STATIC_DIR = os.path.join(os.path.realpath(".."), "static")  # Pre-compile stati
 SECRETS_FILE = "quart-secret.txt"
 
 def main(debug=False):
-    app = quart.Quart(__name__)
-    # Cookie secrets
-    if os.path.isfile(SECRETS_FILE):
-        app_secret = open(SECRETS_FILE).read().strip()
-    else:
-        app_secret = secrets.token_hex()
-        try:
-            open(SECRETS_FILE, "w").write(app_secret)
-        except PermissionError:
-            print(f"Could not write cookie secret to {SECRETS_FILE}, not storing permanent secret.")
-    app.secret_key = app_secret
-
-    app.url_map.converters["filename"] = middleware.FilenameConverter  # Special converter for filename-style vars
-
+    APP = asfquart.construct(__name__)
+    
     # Static files (or index.html if requesting a dir listing)
-    @app.route("/<path:path>")
-    @app.route("/")
+    @APP.route("/<path:path>")
+    @APP.route("/")
     async def static_files(path="index.html"):
         if path.endswith("/"):
             path += "index.html"
         return await quart.send_from_directory(HTDOCS_DIR, path)
 
-    @app.before_serving
+    @APP.before_serving
     async def load_endpoints():
         """Load all API end points and tasks. This is run before Quart starts serving requests"""
-        async with app.app_context():
+        async with APP.app_context():
             from . import endpoints
             from . import plugins
 
             # Regenerate documentation
             if debug:
-                app.add_background_task(assets.loop, STATIC_DIR, HTDOCS_DIR)
+                APP.add_background_task(assets.loop, STATIC_DIR, HTDOCS_DIR)
             else:
                 assets.generate_assets(STATIC_DIR, HTDOCS_DIR)
 
-    @app.after_serving
+    @APP.after_serving
     async def shutdown():
         """Ensure a clean shutdown of the platform by stopping background tasks"""
         log.log("Shutting down infrastructure reporting dashboard...")
-        app.background_tasks.clear()  # Clear repo polling etc
+        APP.background_tasks.clear()  # Clear repo polling etc
 
-    return app
+    return APP

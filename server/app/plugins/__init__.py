@@ -16,7 +16,7 @@
 # under the License.
 """ASF Infrastructure Reporting Dashboard - Plugin handler"""
 
-import quart
+import asfquart
 import typing
 import collections
 
@@ -41,7 +41,7 @@ class PluginList:
         self.plugins.append(pluginEntry(slug, title, icon, loops, private or None))
         if loops:
             for loop in loops:
-                quart.current_app.add_background_task(loop)
+                asfquart.APP.add_background_task(loop)
 
 
 root: PluginList = PluginList()

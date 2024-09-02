@@ -17,24 +17,23 @@
 # under the License.
 """ASF Infrastructure Reporting Dashboard"""
 """Handler for session operations (view current session, log out)"""
-import quart
-from ..lib import middleware, asfuid, config
+import asfquart
+import asfquart.auth
+from asfquart.auth import Requirements as R
+import asfquart.session
+from ..lib import middleware, config
 from ..plugins import jirastats
 
 
-@asfuid.session_required
-async def process(form_data):
+@asfquart.auth.require({R.root})
+@asfquart.APP.route( 
+    "/api/jira",
+)
+async def process_jira():
+    form_data = await asfquart.utils.formdata()
+    session = await asfquart.session.read()
     action = form_data.get("action")
-    if not quart.session.get("isRoot", False):
-        return {"no": "cake for you"}
     if action == "stats":  # Basic stats
         return jirastats.get_issues()
 
 
-quart.current_app.add_url_rule(
-    "/api/jira",
-    methods=[
-        "GET",  # Session get/delete
-    ],
-    view_func=middleware.glued(process),
-)

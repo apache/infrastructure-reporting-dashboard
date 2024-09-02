@@ -17,9 +17,10 @@
 # under the License.
 """ASF Infrastructure Reporting Dashboard"""
 """Handler for builds data"""
-import quart
+import asfquart
+from asfquart.auth import Requirements as R
 import asyncio
-from ..lib import middleware, asfuid
+from ..lib import middleware
 from ..plugins import ghascanner
 import time
 import json
@@ -60,19 +61,18 @@ async def fetch_n_days(hours=MAX_BUILD_SPAN):
         await asyncio.sleep(900)
 
 
-@asfuid.session_required
-async def show_gha_stats(form_data):
+@asfquart.auth.require()
+@asfquart.APP.route(
+    "/api/ghactions",
+)
+async def show_gha_stats():
     """GitHub Actions stats"""
+    form_data = await asfquart.utils.formdata()
+    session = await asfquart.session.read()
+
     hours = int(form_data.get("hours", DEFAULT_BUILD_SPAN))
     project = form_data.get("project", "")
     selfhosted = form_data.get("selfhosted", "false")  # if 'true', count self-hosted time
-    session = asfuid.Credentials()
-    if project:
-        try:
-            assert session.root or project in session.projects
-        except AssertionError:
-            return quart.Response(status=403,
-                                  response=f"Access denied: You do not have access to view statistics for {project}")
     if hours > MAX_BUILD_SPAN:
         hours = MAX_BUILD_SPAN
 
@@ -83,7 +83,7 @@ async def show_gha_stats(form_data):
         if row["run_start"] < start_from or row["run_finish"] < start_from:
             continue
         if (project and row["project"] != project) or (
-                not project and row["project"] not in session.projects) and not session.root:
+                not project and row["project"] not in session.projects) and not session.isRoot:
             continue
         # Discount self-hosted unless asked for
         if selfhosted != "true":
@@ -100,12 +100,4 @@ async def show_gha_stats(form_data):
     }
 
 
-quart.current_app.add_url_rule(
-    "/api/ghactions",
-    methods=[
-        "GET",  # Session get/delete
-    ],
-    view_func=middleware.glued(show_gha_stats),
-)
-
-quart.current_app.add_background_task(fetch_n_days)
+asfquart.APP.add_background_task(fetch_n_days)
