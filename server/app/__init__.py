@@ -19,6 +19,7 @@
 
 import secrets
 import asfquart
+import asfquart.generics
 import quart
 from .lib import config, log, middleware, assets
 import os
@@ -27,6 +28,10 @@ import os
 HTDOCS_DIR = os.path.join(os.path.realpath(".."), "htdocs")  # File location of static assets
 STATIC_DIR = os.path.join(os.path.realpath(".."), "static")  # Pre-compile static assets
 SECRETS_FILE = "quart-secret.txt"
+
+# Hard-set oauth to no OIDC for now
+asfquart.generics.OAUTH_URL_INIT = "https://oauth.apache.org/auth?state=%s&redirect_uri=%s"
+asfquart.generics.OAUTH_URL_CALLBACK = "https://oauth.apache.org/token?code=%s"
 
 def main(debug=False):
     APP = asfquart.construct(__name__)
