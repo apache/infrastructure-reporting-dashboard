@@ -89,7 +89,7 @@ async def scan_for_userids():
 @asfquart.APP.route(
     "/api/userid",
 )
-async def process_userid(form_data):
+async def process_userid():
     form_data = await asfquart.utils.formdata()
     userid = form_data.get("id")
     # Check syntax validity
