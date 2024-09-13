@@ -61,6 +61,8 @@ IGNORE_HOSTS = (
     "www",
     "www.play*",
 )
+JSON_FILE = "machines.json"
+fpdata = {}
 
 def get_fps():
     return fpdata
@@ -211,8 +213,9 @@ def fpscan():
     f.close()
 
 if __name__ == "__main__":
+    print("Scanning...")
     fpscan()
-    print(fpdata)
+    print(fpdata['HTML'])
 #async def fp_scan_loop():
 #    while True:
 #        await fpscan()
