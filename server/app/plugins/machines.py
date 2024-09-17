@@ -23,8 +23,8 @@ Spits out:
     - fp.json: a json file for nodeping to work with
  """
 import asyncio
-#from ..lib import config
-#from .. import plugins
+from ..lib import config
+from .. import plugins
 import aiohttp
 import aiohttp.client_exceptions
 import functools
@@ -61,11 +61,14 @@ IGNORE_HOSTS = (
     "www",
     "www.play*",
 )
-JSON_FILE = "machines.json"
-fpdata = {}
+JSON_FILE = "/tmp/machines.json"
+FPDATA = {}
 
 def get_fps():
-    return fpdata
+    if not bool(globals()['FPDATA']) and os.path.exists(JSON_FILE):
+        globals()['FPDATA'] = json.load(open(JSON_FILE, "r"))
+        print(f"Found fingerprint cache {JSON_FILE}")
+    return json.dumps(globals()['FPDATA'])
 
 class Host:
     def __init__(self, name, ip):
@@ -206,19 +209,21 @@ def fpscan():
         )
     html += "</table>"
     
-    fpdata.update({"HTML": html, "changes": {"changed": len(all_notes), "notes": all_notes}, "old_hosts": old_hosts})
+    globals()['FPDATA'].update({"HTML": html, "changes": {"changed": len(all_notes), "notes": all_notes}, "old_hosts": old_hosts})
 
     with open(JSON_FILE, "w+") as f:
-        json.dump(fpdata, f)
+        json.dump(globals()['FPDATA'], f)
     f.close()
 
-if __name__ == "__main__":
-    print("Scanning...")
-    fpscan()
-    print(fpdata['HTML'])
-#async def fp_scan_loop():
-#    while True:
-#        await fpscan()
-#        await asyncio.sleep(43200)
-#
-#plugins.root.register(fp_scan_loop, slug="machines", title="Machine Fingerprints", icon="bi-fingerprint")
+#if __name__ == "__main__":
+#    print("Scanning...")
+#    print(get_fps())
+#    fpscan()
+#    print(fpdata['HTML'])
+
+async def fp_scan_loop():
+    while True:
+        await fpscan()
+        await asyncio.sleep(43200)
+
+plugins.root.register(fp_scan_loop, slug="machines", title="Machine Fingerprints", icon="bi-fingerprint")

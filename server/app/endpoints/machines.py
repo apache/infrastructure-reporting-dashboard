@@ -19,7 +19,7 @@
 """Handler for mail stats"""
 import asfquart
 from asfquart.auth import Requirements as R
-from ..lib import middleware, config
+from ..lib import config
 from ..plugins import machines
 
 
@@ -27,9 +27,8 @@ from ..plugins import machines
 @asfquart.APP.route(
     "/api/machines",
 )
-async def process_mailstats():
+
+async def process_fingerprints():
     form_data = await asfquart.utils.formdata()
     session = await asfquart.session.read()
-    return machines.get_html()
-
-
+    return machines.get_fps()['HTML']

@@ -7,3 +7,4 @@ from . import mailstats
 from . import userid
 from . import downloads
 from . import builds
+from . import machines
