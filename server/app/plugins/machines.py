@@ -65,7 +65,7 @@ JSON_FILE = "/tmp/machines.json"
 FPDATA = {}
 
 def get_fps():
-    if not bool(globals()['FPDATA']) and os.path.exists(JSON_FILE):
+    if 'HTML' not in globals()['FPDATA'] and os.path.exists(JSON_FILE):
         print(f"Found fingerprint cache {JSON_FILE}")
         globals()['FPDATA'] = json.load(open(JSON_FILE, "r"))
     return globals()['FPDATA']
@@ -223,7 +223,7 @@ def fpscan():
 
 async def fp_scan_loop():
     while True:
-        await fpscan()
+        fpscan()
         await asyncio.sleep(43200)
 
 plugins.root.register(fp_scan_loop, slug="machines", title="Machine Fingerprints", icon="bi-fingerprint")
