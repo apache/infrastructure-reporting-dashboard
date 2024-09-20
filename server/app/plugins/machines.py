@@ -66,9 +66,9 @@ FPDATA = {}
 
 def get_fps():
     if not bool(globals()['FPDATA']) and os.path.exists(JSON_FILE):
-        globals()['FPDATA'] = json.load(open(JSON_FILE, "r"))
         print(f"Found fingerprint cache {JSON_FILE}")
-    return json.dumps(globals()['FPDATA'])
+        globals()['FPDATA'] = json.load(open(JSON_FILE, "r"))
+    return globals()['FPDATA']
 
 class Host:
     def __init__(self, name, ip):
@@ -115,7 +115,7 @@ def fpscan():
                     continue
                 gunk, rsa_sha256 = l2fp(keydata_rsa)
                 gunk, ecdsa_sha256 = l2fp(keydata_ecdsa)
-                #print(name, ipv4, rsa_sha256, ecdsa_sha256)
+                print(name, ipv4, rsa_sha256, ecdsa_sha256)
                 reachable += 1
                 now = int(time.time())
                 now_str = datetime.datetime.fromtimestamp(now).strftime("%c")
@@ -142,7 +142,7 @@ def fpscan():
             except KeyboardInterrupt:
                 break
             except subprocess.CalledProcessError as e:
-                # print(f"Could not fetch fingerprint for {name}.apache.org, continuing..." + str(e))
+                print(f"Could not fetch fingerprint for {name}.apache.org, continuing..." + str(e))
                 unreachable.append(name)
 
     stamp = time.strftime("%Y-%m-%d %H:%M:%S %z", time.gmtime())
@@ -210,7 +210,7 @@ def fpscan():
     html += "</table>"
     
     globals()['FPDATA'].update({"HTML": html, "changes": {"changed": len(all_notes), "notes": all_notes}, "old_hosts": old_hosts})
-
+    print("writing to file...")
     with open(JSON_FILE, "w+") as f:
         json.dump(globals()['FPDATA'], f)
     f.close()

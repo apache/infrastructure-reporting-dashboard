@@ -27,8 +27,9 @@ from ..plugins import machines
 @asfquart.APP.route(
     "/api/machines",
 )
-
 async def process_fingerprints():
     form_data = await asfquart.utils.formdata()
     session = await asfquart.session.read()
-    return machines.get_fps()['HTML']
+#    data = machines.get_fps()
+#    return data
+    return machines.get_fps()
