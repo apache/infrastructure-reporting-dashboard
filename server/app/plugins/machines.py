@@ -62,11 +62,10 @@ IGNORE_HOSTS = (
     "www.play*",
 )
 JSON_FILE = "/tmp/machines.json"
-_FPDATA = {}
+FPDATA = {}
 
 def get_fps():
-    print(f"DATA: {_FPDATA}")
-    return _FPDATA
+    return globals()['FPDATA']
 
 
 class Host:
@@ -83,9 +82,10 @@ def l2fp(line):
     return fp_md5, fp_sha256
 
 
-def fpscan():
+async def fpscan():
     if os.path.exists(JSON_FILE):
-        _FPDATA = json.load(open(JSON_FILE, "r"))
+        with open(JSON_FILE, 'r') as f:
+           globals()['FPDATA'] = json.load(f)
     old_hosts = {}
     hosts = {}
     for ip, name in IPDATA.items():
@@ -116,7 +116,7 @@ def fpscan():
                     continue
                 gunk, rsa_sha256 = l2fp(keydata_rsa)
                 gunk, ecdsa_sha256 = l2fp(keydata_ecdsa)
-                print(name, ipv4, rsa_sha256, ecdsa_sha256)
+     #           print(name, ipv4, rsa_sha256, ecdsa_sha256)
                 reachable += 1
                 now = int(time.time())
                 now_str = datetime.datetime.fromtimestamp(now).strftime("%c")
@@ -210,7 +210,7 @@ def fpscan():
         )
     html += "</table>"
     
-    _FPDATA.update({"HTML": html, "changes": {"changed": len(all_notes), "notes": all_notes}, "old_hosts": old_hosts})
+    globals()['FPDATA'].update({"HTML": html, "changes": {"changed": len(all_notes), "notes": all_notes}, "old_hosts": old_hosts})
     print("writing to file...")
     with open(JSON_FILE, "w+") as f:
         json.dump(globals()['FPDATA'], f)
@@ -220,11 +220,12 @@ def fpscan():
 #    print("Scanning...")
 #    print(get_fps())
 #    fpscan()
-#    print(fpdata['HTML'])
+#    print(globals()['FPDATA']['HTML'])
+#    sys.exit(0)
 
 async def fp_scan_loop():
     while True:
-        fpscan()
+        await fpscan()
         await asyncio.sleep(43200)
 
 plugins.root.register(fp_scan_loop, slug="machines", title="Machine Fingerprints", icon="bi-fingerprint")

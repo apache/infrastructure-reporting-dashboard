@@ -1,7 +1,8 @@
 let machines_json = null;
 
 async function seed_machines() {
-    machines_json = await (await fetch("/api/machines"));
+//    machines_json = await (await fetch("/api/machines"));
+    machines_json = await fetch("/api/machines");
 }
 
 function split_once(str, splitter) {
@@ -22,7 +23,7 @@ async function render_dashboard_machines() {
  
     const outer_chart_area = document.getElementById('chart_area');
     const fprints = document.createElement('p');
-    fprints.innerText = JSON.stringify(machines_json);
+    fprints.innerHTML = JSON.stringify(machines_json)['HTML'];
     outer_chart_area.appendChild(fprints);
 }
 /*
