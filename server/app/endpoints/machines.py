@@ -30,6 +30,4 @@ from ..plugins import machines
 async def process_fingerprints():
     form_data = await asfquart.utils.formdata()
     session = await asfquart.session.read()
-    action = form_data.get("action")
-    if action == "stats":
-        return machines.get_fps()
+    return machines.get_fps()

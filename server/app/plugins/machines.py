@@ -62,13 +62,12 @@ IGNORE_HOSTS = (
     "www.play*",
 )
 JSON_FILE = "/tmp/machines.json"
-FPDATA = {}
+_FPDATA = {}
 
 def get_fps():
-    if 'HTML' not in globals()['FPDATA'] and os.path.exists(JSON_FILE):
-        print(f"Found fingerprint cache {JSON_FILE}")
-        globals()['FPDATA'] = json.load(open(JSON_FILE, "r"))
-    return globals()['FPDATA']
+    print(f"DATA: {_FPDATA}")
+    return _FPDATA
+
 
 class Host:
     def __init__(self, name, ip):
@@ -85,6 +84,8 @@ def l2fp(line):
 
 
 def fpscan():
+    if os.path.exists(JSON_FILE):
+        _FPDATA = json.load(open(JSON_FILE, "r"))
     old_hosts = {}
     hosts = {}
     for ip, name in IPDATA.items():
@@ -209,7 +210,7 @@ def fpscan():
         )
     html += "</table>"
     
-    globals()['FPDATA'].update({"HTML": html, "changes": {"changed": len(all_notes), "notes": all_notes}, "old_hosts": old_hosts})
+    _FPDATA.update({"HTML": html, "changes": {"changed": len(all_notes), "notes": all_notes}, "old_hosts": old_hosts})
     print("writing to file...")
     with open(JSON_FILE, "w+") as f:
         json.dump(globals()['FPDATA'], f)
