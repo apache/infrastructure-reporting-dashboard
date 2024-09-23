@@ -105,18 +105,17 @@ async def fpscan():
             ipv4 = [x for x in host_data.ips if "." in x][0]
 
             try:
-                keydata_rsa = subprocess.check_output(
-                    (KEYSCAN, "-T", "1", "-4", "-t", "rsa", "%s.apache.org" % name), stderr=subprocess.PIPE
+                keydata_rsa = await asyncio.create_subprocess_exec(
+                    (KEYSCAN, "-T", "1", "-4", "-t", "rsa", "%s.apache.org" % name), stderr=asyncio.subprocess.PIPE
                 )
-                keydata_ecdsa = subprocess.check_output(
-                    (KEYSCAN, "-T", "1", "-4", "-t", "ecdsa", "%s.apache.org" % name), stderr=subprocess.PIPE
+                keydata_ecdsa = await asyncio.create_subprocess_exec(
+                    (KEYSCAN, "-T", "1", "-4", "-t", "ecdsa", "%s.apache.org" % name), stderr=asyncio.subprocess.PIPE
                 )
                 if not keydata_rsa:
                     unreachable.append(name)
                     continue
                 gunk, rsa_sha256 = l2fp(keydata_rsa)
                 gunk, ecdsa_sha256 = l2fp(keydata_ecdsa)
-     #           print(name, ipv4, rsa_sha256, ecdsa_sha256)
                 reachable += 1
                 now = int(time.time())
                 now_str = datetime.datetime.fromtimestamp(now).strftime("%c")
