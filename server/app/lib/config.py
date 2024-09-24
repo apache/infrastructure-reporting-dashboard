@@ -60,4 +60,4 @@ class GitHubConfiguration:
 cfg_yaml = yaml.safe_load(open(CONFIG_FILE, "r"))
 server = ServerConfiguration(cfg_yaml.get("server", {}))
 reporting = ReportingConfiguration(cfg_yaml.get("reporting", {}))
-github = GitHubConfiguration(cfg_yaml.get("github", {}))
+#github = GitHubConfiguration(cfg_yaml.get("github", {}))
