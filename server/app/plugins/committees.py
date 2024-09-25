@@ -32,8 +32,6 @@ import re
 import datetime
 import sys
 
-_committers: dict = {}
-
 NAME_MAP = None
 COMMITTEES = None
 COMMITTEE_INFO_JSON = None
@@ -75,7 +73,6 @@ def set_key(project):
         key = globals()['NAME_MAP'][project.lower()]
     else:
         key = project.lower()
-
     return key
 
 def parse_rosters(data):
@@ -139,7 +136,7 @@ def parse_committees_info():
         b = re.split('\s\s+', board.lstrip())
         temp_roster = b[1].strip('>').split(' <')
         temp_roster.append(temp_roster[1].split('@')[0])
-#        officers_temp[set_key(b[0])] = { "display_name": b[0],"paragraph": "Committee", "roster": { f"{temp_roster[2]}": { "name": temp_roster[0]}}}
+        committees[set_key(b[0])] = { "display_name": b[0],"paragraph": "Committee", "roster": { f"{temp_roster[2]}": { "name": temp_roster[0]}}}
 
     # parse Presidential Committees
     for prescom in prescoms.split('\n')[2:-3]:
@@ -167,7 +164,7 @@ def parse_committees_info():
         "pmc_count": projects_processed,
         "officers": officers_temp
     }
-    # Update Global
+
     globals()['COMMITTEE_INFO'] = data
 
 
@@ -178,5 +175,6 @@ async def scan_loop():
 
 load_data()
 parse_committees_info()
-print(COMMITTEE_INFO)
+print(globals()['COMMITTEE_INFO'])
+
 #plugins.root.register(scan_loop, slug="json", title="Mail Transport Statistics", icon="bi-envelope-exclamation-fill", private=True)
