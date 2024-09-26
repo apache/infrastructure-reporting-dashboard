@@ -98,52 +98,51 @@ async def fpscan():
     unreachable = []
     all_notes = []
 
-    if not "quick" in sys.argv:
-        for name, host_data in sorted(hosts.items()):
-            if any(fnmatch.fnmatch(name, pattern) for pattern in IGNORE_HOSTS):
-                continue
-            ipv4 = [x for x in host_data.ips if "." in x][0]
+    for name, host_data in sorted(hosts.items()):
+        if any(fnmatch.fnmatch(name, pattern) for pattern in IGNORE_HOSTS):
+            continue
+        ipv4 = [x for x in host_data.ips if "." in x][0]
 
-            try:
-                keydata_rsa = await asyncio.create_subprocess_exec(
-                    (KEYSCAN, "-T", "1", "-4", "-t", "rsa", "%s.apache.org" % name), stderr=asyncio.subprocess.PIPE
-                )
-                keydata_ecdsa = await asyncio.create_subprocess_exec(
-                    (KEYSCAN, "-T", "1", "-4", "-t", "ecdsa", "%s.apache.org" % name), stderr=asyncio.subprocess.PIPE
-                )
-                if not keydata_rsa:
-                    unreachable.append(name)
-                    continue
-                gunk, rsa_sha256 = l2fp(keydata_rsa)
-                gunk, ecdsa_sha256 = l2fp(keydata_ecdsa)
-                reachable += 1
-                now = int(time.time())
-                now_str = datetime.datetime.fromtimestamp(now).strftime("%c")
-
-                if name not in old_hosts:
-                    old_hosts[name] = {
-                        "ipv4": ipv4,
-                        "fingerprint_ecdsa": ecdsa_sha256,
-                        "fingerprint_rsa": rsa_sha256,
-                        "first_seen": now,
-                        "last_seen": now,
-                        "okay": True,
-                        "notes": [],
-                    }
-                else:
-                    oho = old_hosts[name]
-                    if oho["fingerprint_rsa"] != rsa_sha256:
-                        note = f"Fingerprint of {name} changed at {now_str}, from {oho['fingerprint_rsa']} to {rsa_sha256}!"
-                        oho["okay"] = False
-                        oho["notes"].append(note)
-                        all_notes.append(note)
-                        #print(note)
-
-            except KeyboardInterrupt:
-                break
-            except subprocess.CalledProcessError as e:
-                print(f"Could not fetch fingerprint for {name}.apache.org, continuing..." + str(e))
+        try:
+            keydata_rsa = await asyncio.create_subprocess_exec(
+                (KEYSCAN, "-T", "1", "-4", "-t", "rsa", "%s.apache.org" % name), stderr=asyncio.subprocess.PIPE
+            )
+            keydata_ecdsa = await asyncio.create_subprocess_exec(
+                (KEYSCAN, "-T", "1", "-4", "-t", "ecdsa", "%s.apache.org" % name), stderr=asyncio.subprocess.PIPE
+            )
+            if not keydata_rsa:
                 unreachable.append(name)
+                continue
+            gunk, rsa_sha256 = l2fp(keydata_rsa)
+            gunk, ecdsa_sha256 = l2fp(keydata_ecdsa)
+            reachable += 1
+            now = int(time.time())
+            now_str = datetime.datetime.fromtimestamp(now).strftime("%c")
+
+            if name not in old_hosts:
+                old_hosts[name] = {
+                    "ipv4": ipv4,
+                    "fingerprint_ecdsa": ecdsa_sha256,
+                    "fingerprint_rsa": rsa_sha256,
+                    "first_seen": now,
+                    "last_seen": now,
+                    "okay": True,
+                    "notes": [],
+                }
+            else:
+                oho = old_hosts[name]
+                if oho["fingerprint_rsa"] != rsa_sha256:
+                    note = f"Fingerprint of {name} changed at {now_str}, from {oho['fingerprint_rsa']} to {rsa_sha256}!"
+                    oho["okay"] = False
+                    oho["notes"].append(note)
+                    all_notes.append(note)
+                    #print(note)
+
+        except KeyboardInterrupt:
+            break
+        except subprocess.CalledProcessError as e:
+            print(f"Could not fetch fingerprint for {name}.apache.org, continuing..." + str(e))
+            unreachable.append(name)
 
     stamp = time.strftime("%Y-%m-%d %H:%M:%S %z", time.gmtime())
     rtxt = ""
