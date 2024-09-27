@@ -18,13 +18,11 @@ function split_once(str, splitter) {
 
 async function render_dashboard_machines() {
     document.getElementById('page_title').innerText = "Machine Fingerprints";
-    document.getElementById('page_description').innerText = "This page monitors the machine fingerprints of all Apache machines.";
+//    document.getElementById('page_description').innerText = "This page monitors the machine fingerprints of all Apache machines.";
     if (!machines_json) await seed_machines();
  
     const outer_chart_area = document.getElementById('chart_area');
-    const fprints = document.createElement('p');
-    fprints.innerHTML = machines_json['HTML'];
-    outer_chart_area.appendChild(fprints);
+    outer_chart_area.innerHTML = machines_json['HTML'];
 }
 /*
     const filterfield = document.createElement('input');

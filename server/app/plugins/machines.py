@@ -63,10 +63,10 @@ IGNORE_HOSTS = (
 )
 JSON_FILE = "/tmp/machines.json"
 FPDATA = {}
-
+COUNT = 0
 def get_fps():
-    return globals()['FPDATA']
-
+    if bool(globals()['FPDATA']):
+        return globals()['FPDATA']
 
 class Host:
     def __init__(self, name, ip):
@@ -97,19 +97,22 @@ async def fpscan():
     reachable = 0
     unreachable = []
     all_notes = []
-
     for name, host_data in sorted(hosts.items()):
         if any(fnmatch.fnmatch(name, pattern) for pattern in IGNORE_HOSTS):
             continue
         ipv4 = [x for x in host_data.ips if "." in x][0]
-
+        
         try:
-            keydata_rsa = await asyncio.create_subprocess_exec(
-                (KEYSCAN, "-T", "1", "-4", "-t", "rsa", "%s.apache.org" % name), stderr=asyncio.subprocess.PIPE
+            kdata_rsa = await asyncio.create_subprocess_shell(
+                f"{KEYSCAN} -T 1 -4 -t rsa {name}.apache.org", stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+                #(KEYSCAN, '-T', '1', '-4', '-t', 'rsa' f"{name}.apache.org"), stderr=asyncio.subprocess.PIPE
             )
-            keydata_ecdsa = await asyncio.create_subprocess_exec(
-                (KEYSCAN, "-T", "1", "-4", "-t", "ecdsa", "%s.apache.org" % name), stderr=asyncio.subprocess.PIPE
+            kdata_ecdsa = await asyncio.create_subprocess_shell(
+                f"{KEYSCAN} -T  1  -4  -t  ecdsa  {name}.apache.org", stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+                #(KEYSCAN, '-T', '1', '-4', '-t', 'ecdsa', f"{name}.apache.org"), stderr=asyncio.subprocess.PIPE
             )
+            keydata_rsa, rsa_stderr = await kdata_rsa.communicate()
+            keydata_ecdsa, ecdsa_stderr = await kdata_ecdsa.communicate()
             if not keydata_rsa:
                 unreachable.append(name)
                 continue
@@ -141,7 +144,6 @@ async def fpscan():
         except KeyboardInterrupt:
             break
         except subprocess.CalledProcessError as e:
-            print(f"Could not fetch fingerprint for {name}.apache.org, continuing..." + str(e))
             unreachable.append(name)
 
     stamp = time.strftime("%Y-%m-%d %H:%M:%S %z", time.gmtime())
@@ -207,23 +209,25 @@ async def fpscan():
                 % (name, ipv4)
         )
     html += "</table>"
-    
-    globals()['FPDATA'].update({"HTML": html, "changes": {"changed": len(all_notes), "notes": all_notes}, "old_hosts": old_hosts})
-    print("writing to file...")
+    globals()['FPDATA'] = ({"HTML": html, "changes": {"changed": len(all_notes), "notes": all_notes}, "old_hosts": old_hosts})
+    print("Writing JSON data to file...")
     with open(JSON_FILE, "w+") as f:
         json.dump(globals()['FPDATA'], f)
     f.close()
 
-#if __name__ == "__main__":
-#    print("Scanning...")
-#    print(get_fps())
-#    fpscan()
-#    print(globals()['FPDATA']['HTML'])
-#    sys.exit(0)
 
 async def fp_scan_loop():
     while True:
         await fpscan()
-        await asyncio.sleep(43200)
+#        await asyncio.sleep(43200)
+        await asyncio.sleep(900)
+
+
+#if __name__ == "__main__":
+#    print("Scanning machine fingerprints...")
+#    processed = asyncio.run(fpscan())
+#    print(f"Scanned {processed} machines!")
+#    print(globals()['FPDATA'])
+#    sys.exit(0)
 
 plugins.root.register(fp_scan_loop, slug="machines", title="Machine Fingerprints", icon="bi-fingerprint")
