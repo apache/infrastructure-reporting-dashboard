@@ -61,7 +61,6 @@ IGNORE_HOSTS = (
     "www",
     "www.play*",
 )
-JSON_FILE = "/tmp/machines.json"
 FPDATA = {}
 COUNT = 0
 def get_fps():
@@ -83,9 +82,6 @@ def l2fp(line):
 
 
 async def fpscan():
-    if os.path.exists(JSON_FILE):
-        with open(JSON_FILE, 'r') as f:
-           globals()['FPDATA'] = json.load(f)
     old_hosts = {}
     hosts = {}
     for ip, name in IPDATA.items():
@@ -210,17 +206,12 @@ async def fpscan():
         )
     html += "</table>"
     globals()['FPDATA'] = ({"HTML": html, "changes": {"changed": len(all_notes), "notes": all_notes}, "old_hosts": old_hosts})
-    print("Writing JSON data to file...")
-    with open(JSON_FILE, "w+") as f:
-        json.dump(globals()['FPDATA'], f)
-    f.close()
-
 
 async def fp_scan_loop():
     while True:
         await fpscan()
-#        await asyncio.sleep(43200)
-        await asyncio.sleep(900)
+        await asyncio.sleep(43200)
+#        await asyncio.sleep(900)
 
 
 #if __name__ == "__main__":
