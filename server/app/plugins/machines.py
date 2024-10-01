@@ -239,9 +239,7 @@ async def fpscan():
 async def fp_scan_loop():
     while True:
         await fpscan()
-        #        await asyncio.sleep(43200)
-        await asyncio.sleep(300)
-
+        await asyncio.sleep(43200)
 
 plugins.root.register(
     fp_scan_loop, slug="machines", title="Machine Fingerprints", icon="bi-fingerprint"
