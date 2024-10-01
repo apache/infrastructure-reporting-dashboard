@@ -40,7 +40,9 @@ import fnmatch
 import sys
 
 KEYSCAN = "/usr/bin/ssh-keyscan"
-IPDATA = requests.get("https://svn.apache.org/repos/infra/infrastructure/trunk/dns/zones/ipdata.json").json()
+IPDATA = requests.get(
+    "https://svn.apache.org/repos/infra/infrastructure/trunk/dns/zones/ipdata.json"
+).json()
 IGNORE_HOSTS = (
     "bb-win10",
     "ci.hive",
@@ -61,33 +63,35 @@ IGNORE_HOSTS = (
     "www",
     "www.play*",
 )
-JSON_FILE = "/tmp/machines.json"
 FPDATA = {}
 COUNT = 0
+
+
 def get_fps():
-    if bool(globals()['FPDATA']):
-        return globals()['FPDATA']
+    if bool(globals()["FPDATA"]):
+        return globals()["FPDATA"]
     else:
         return {"HTML": "<h4>Scanning machine fingerprints...</h4>"}
+
 
 class Host:
     def __init__(self, name, ip):
         self.ips = [ip]
         self.name = name
 
+
 def l2fp(line):
     """Public key to fingerprints"""
     key = base64.b64decode(line.strip().split()[-1])
     fp_plain = hashlib.md5(key).hexdigest()
     fp_md5 = ":".join(a + b for a, b in zip(fp_plain[::2], fp_plain[1::2]))
-    fp_sha256 = base64.b64encode(hashlib.sha256(key).digest()).decode("ascii").rstrip("=")
+    fp_sha256 = (
+        base64.b64encode(hashlib.sha256(key).digest()).decode("ascii").rstrip("=")
+    )
     return fp_md5, fp_sha256
 
 
 async def fpscan():
-    if os.path.exists(JSON_FILE):
-        with open(JSON_FILE, 'r') as f:
-           globals()['FPDATA'] = json.load(f)
     old_hosts = {}
     hosts = {}
     for ip, name in IPDATA.items():
@@ -103,15 +107,19 @@ async def fpscan():
         if any(fnmatch.fnmatch(name, pattern) for pattern in IGNORE_HOSTS):
             continue
         ipv4 = [x for x in host_data.ips if "." in x][0]
-        
+
         try:
             kdata_rsa = await asyncio.create_subprocess_shell(
-                f"{KEYSCAN} -T 1 -4 -t rsa {name}.apache.org", stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-                #(KEYSCAN, '-T', '1', '-4', '-t', 'rsa' f"{name}.apache.org"), stderr=asyncio.subprocess.PIPE
+                f"{KEYSCAN} -T 1 -4 -t rsa {name}.apache.org",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+                # (KEYSCAN, '-T', '1', '-4', '-t', 'rsa' f"{name}.apache.org"), stderr=asyncio.subprocess.PIPE
             )
             kdata_ecdsa = await asyncio.create_subprocess_shell(
-                f"{KEYSCAN} -T  1  -4  -t  ecdsa  {name}.apache.org", stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-                #(KEYSCAN, '-T', '1', '-4', '-t', 'ecdsa', f"{name}.apache.org"), stderr=asyncio.subprocess.PIPE
+                f"{KEYSCAN} -T  1  -4  -t  ecdsa  {name}.apache.org",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+                # (KEYSCAN, '-T', '1', '-4', '-t', 'ecdsa', f"{name}.apache.org"), stderr=asyncio.subprocess.PIPE
             )
             keydata_rsa, rsa_stderr = await kdata_rsa.communicate()
             keydata_ecdsa, ecdsa_stderr = await kdata_ecdsa.communicate()
@@ -141,7 +149,7 @@ async def fpscan():
                     oho["okay"] = False
                     oho["notes"].append(note)
                     all_notes.append(note)
-                    #print(note)
+                    # print(note)
 
         except KeyboardInterrupt:
             break
@@ -152,7 +160,8 @@ async def fpscan():
     rtxt = ""
     if unreachable:
         rtxt = f"({len(unreachable)} hosts not reachable)"
-    html = """
+    html = (
+        """
         <style>
                     #fingerprints td:last-child {
         font-size: 0.8rem;
@@ -184,7 +193,9 @@ async def fpscan():
                     }
 
                 </style>
-    """ + f"<h2>{reachable} verified hosts {rtxt} @ {stamp}</h2>"
+    """
+        + f"<h2>{reachable} verified hosts {rtxt} @ {stamp}</h2>"
+    )
     html += "<table id='fingerprints' cellpadding='6' cellspacing='0' style='border: 0.75px solid #333;'><tr><th>Hostname</th><th>IPv4</th><th>RSA Fingerprint (SHA256)</th><th>ECDSA Fingerprint (SHA256)</th><th>Status</th></tr>\n"
 
     # Print each known host
@@ -196,8 +207,14 @@ async def fpscan():
             if data["notes"]:
                 status = "<span color='F70'>CHANGED</span>"
             html += (
-                    "<tr style='background: inherit;'><td><kbd><b>%s</b></kbd></td><td><kbd>%s</kbd></td><td><kbd>%s</kbd></td><td><kbd>%s</kbd></td><td>%s</td></tr>\n"
-                    % (name, data["ipv4"], data["fingerprint_rsa"], data["fingerprint_ecdsa"], status)
+                "<tr style='background: inherit;'><td><kbd><b>%s</b></kbd></td><td><kbd>%s</kbd></td><td><kbd>%s</kbd></td><td><kbd>%s</kbd></td><td>%s</td></tr>\n"
+                % (
+                    name,
+                    data["ipv4"],
+                    data["fingerprint_rsa"],
+                    data["fingerprint_ecdsa"],
+                    status,
+                )
             )
 
     # Print unknown unreachables at the bottom
@@ -207,29 +224,25 @@ async def fpscan():
         data = hosts[name]
         ipv4 = [x for x in data.ips if "." in x][0]
         html += (
-                "<tr style='background: inherit;'><td><kbd><b>%s</b></kbd></td><td><kbd>%s</kbd></td><td><kbd>N/A</kbd></td><td><kbd>N/A</kbd></td><td>Unreachable</td></tr>\n"
-                % (name, ipv4)
+            "<tr style='background: inherit;'><td><kbd><b>%s</b></kbd></td><td><kbd>%s</kbd></td><td><kbd>N/A</kbd></td><td><kbd>N/A</kbd></td><td>Unreachable</td></tr>\n"
+            % (name, ipv4)
         )
     html += "</table>"
-    globals()['FPDATA'] = ({"HTML": html, "changes": {"changed": len(all_notes), "notes": all_notes}, "old_hosts": old_hosts})
-    print("Writing machine fingerprint data to file...")
-    with open(JSON_FILE, "w+") as f:
-        json.dump(globals()['FPDATA'], f)
-    f.close()
+    globals()["FPDATA"] = {
+        "HTML": html,
+        "changes": {"changed": len(all_notes), "notes": all_notes},
+        "old_hosts": old_hosts,
+    }
+    print("Fingerprint roster updated!")
 
 
 async def fp_scan_loop():
     while True:
         await fpscan()
-#        await asyncio.sleep(43200)
+        #        await asyncio.sleep(43200)
         await asyncio.sleep(300)
 
 
-#if __name__ == "__main__":
-#    print("Scanning machine fingerprints...")
-#    processed = asyncio.run(fpscan())
-#    print(f"Scanned {processed} machines!")
-#    print(globals()['FPDATA'])
-#    sys.exit(0)
-
-plugins.root.register(fp_scan_loop, slug="machines", title="Machine Fingerprints", icon="bi-fingerprint")
+plugins.root.register(
+    fp_scan_loop, slug="machines", title="Machine Fingerprints", icon="bi-fingerprint"
+)
