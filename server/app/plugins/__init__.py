@@ -53,3 +53,4 @@ from . import uptime
 from . import mailstats
 from . import downloads
 from . import ghascanner
+from . import machines
