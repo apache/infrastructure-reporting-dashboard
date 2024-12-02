@@ -48,9 +48,9 @@ root: PluginList = PluginList()
 
 # Import each plugin.
 # note: for dev/test, you may comment-out specific plugins
-from . import jirastats
+# from . import jirastats
 from . import uptime
-from . import mailstats
-from . import downloads
-from . import ghascanner
+# from . import mailstats
+# from . import downloads
+# from . import ghascanner
 from . import machines

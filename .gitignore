@@ -197,3 +197,5 @@ htdocs/
 
 # Local test config
 reporting-dashboard.yaml
+server/apptoken.txt
+server/ghactions.db

@@ -123,7 +123,7 @@ async def fpscan():
             )
             keydata_rsa, rsa_stderr = await kdata_rsa.communicate()
             keydata_ecdsa, ecdsa_stderr = await kdata_ecdsa.communicate()
-            if not keydata_rsa:
+            if not keydata_rsa or not keydata_ecdsa:
                 unreachable.append(name)
                 continue
             gunk, rsa_sha256 = l2fp(keydata_rsa)
