@@ -1,0 +1,39 @@
+name: Linting and MyPy
+
+on: 
+  push:
+  
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        python-version: [3.8, 3.13]
+    steps:
+    - uses: actions/checkout@main
+      with:
+        persist-credentials: false
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pylint
+        pip install mypy
+        pip install types-PyYAML
+        pip install types-requests
+    - name: Type testing with mypy
+      run: |
+          mypy --cache-dir /tmp/ --install-types
+          mypy --cache-dir /tmp/ server
+    - name: Testing with pylint
+      if: always() # even if mypy fails
+      run: |
+          pylint --recursive y .
