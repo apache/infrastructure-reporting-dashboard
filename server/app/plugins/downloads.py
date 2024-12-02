@@ -330,16 +330,16 @@ async def downloads_scan_loop():
         # Update list of projects, if possible - otherwise, fall back to cache
         projects_list = DEFAULT_PROJECTS_LIST
         if hasattr(config.reporting, "downloads"):  # If prod...
-               projects_list = config.reporting.downloads.get("projects_list", DEFAULT_PROJECTS_LIST)
+            projects_list = config.reporting.downloads.get("projects_list", DEFAULT_PROJECTS_LIST)
 
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as hc:
-                try:
-                    async with hc.get(projects_list) as req:
-                        if req.status == 200:
-                            projects = (await req.json())["projects"].keys()
-                except (aiohttp.ClientError, asyncio.TimeoutError, json.JSONDecodeError) as e:
-                    print(f"Download stats: Could not fetch list of projects from {projects_list}: {e}")
-                    print("Download stats: Using cached entry instead")
+            try:
+                async with hc.get(projects_list) as req:
+                    if req.status == 200:
+                        projects = (await req.json())["projects"].keys()
+            except (aiohttp.ClientError, asyncio.TimeoutError, json.JSONDecodeError) as e:
+                print(f"Download stats: Could not fetch list of projects from {projects_list}: {e}")
+                print("Download stats: Using cached entry instead")
 
         # For each project, run scans if needed
         for project in projects:
