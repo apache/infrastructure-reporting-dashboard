@@ -90,7 +90,6 @@ async def mail_scan():
                         mxout_stats[hostname] = trim_stats(await req.json())
             except (aiohttp.ClientError, asyncio.TimeoutError, json.JSONDecodeError) as e:
                 print(f"Could not fetch JSON from {hostname}: {e}")
-    mxout_collated = {}
     _stats.clear()
     _stats.update(mxout_stats)
     _stats["collated"] = collate_stats(*mxout_stats.values())

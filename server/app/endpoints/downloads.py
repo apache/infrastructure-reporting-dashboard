@@ -19,8 +19,6 @@
 
 """Handler for download stats - ported from https://github.com/apache/infrastructure-dlstats"""
 import asfquart
-from asfquart.auth import Requirements as R
-from ..lib import middleware, config
 from ..plugins import downloads
 
 @asfquart.auth.require
@@ -29,7 +27,6 @@ from ..plugins import downloads
 )
 async def process_downloads():
     form_data = await asfquart.utils.formdata()
-    session = await asfquart.session.read()
 
     project = form_data.get("project", "httpd")    # Project/podling to fetch stats for
     duration = form_data.get("duration", 7)        # Timespan to search (in whole days)

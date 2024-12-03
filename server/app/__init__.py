@@ -17,11 +17,10 @@
 # under the License.
 """ASF Infra Reporting Dashboard - Plugins"""
 
-import secrets
 import asfquart
 import asfquart.generics
 import quart
-from .lib import config, log, middleware, assets
+from .lib import log, assets
 import os
 
 
@@ -48,8 +47,6 @@ def main(debug=False):
     async def load_endpoints():
         """Load all API end points and tasks. This is run before Quart starts serving requests"""
         async with APP.app_context():
-            from . import endpoints
-            from . import plugins
 
             # Regenerate documentation
             if debug:
