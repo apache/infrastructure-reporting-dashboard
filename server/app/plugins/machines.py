@@ -41,7 +41,8 @@ import sys
 
 KEYSCAN = "/usr/bin/ssh-keyscan"
 IPDATA = requests.get(
-    "https://svn.apache.org/repos/infra/infrastructure/trunk/dns/zones/ipdata.json"
+    "https://svn.apache.org/repos/infra/infrastructure/trunk/dns/zones/ipdata.json",
+    timeout=120
 ).json()
 IGNORE_HOSTS = (
     "bb-win10",
