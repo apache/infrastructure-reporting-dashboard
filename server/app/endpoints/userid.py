@@ -17,7 +17,7 @@
 # under the License.
 """ASF Infrastructure Reporting Dashboard"""
 """Handler for userID availability/syntax checks"""
-from ..lib import middleware, config
+from ..lib import config
 import os
 import yaml
 import psycopg

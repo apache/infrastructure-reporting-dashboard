@@ -16,11 +16,10 @@
 # specific language governing permissions and limitations
 # under the License.
 """ASF Infrastructure Reporting Dashboard"""
-import functools
 
 """Handler for uptime stats"""
 import asfquart
-from ..lib import middleware, config
+from ..lib import config
 from ..plugins import uptime
 
 
@@ -28,16 +27,9 @@ from ..plugins import uptime
     "/api/uptime",
 )
 async def process_uptime():
-    form_data = await asfquart.utils.formdata()
-    session = await asfquart.session.read()
     uptime_stats = uptime.get_stats()
     series = config.reporting.uptime.get("series", {})
     uptime_collated = {}
-    uptime_summed = {
-        "year": 100.0,
-        "month": 100.0,
-        "week": 100.0,
-    }
     if series:
         u_y = 0
         u_m = 0
