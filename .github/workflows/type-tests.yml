@@ -32,7 +32,7 @@ jobs:
         python -m pip install types-python-dateutil
     - name: Type testing with mypy
       run: |
-          mypy --cache-dir /tmp/ --install-types
+          mypy --cache-dir /tmp/
           mypy --cache-dir /tmp/ server
     - name: Testing with pylint
       if: always() # even if mypy fails
