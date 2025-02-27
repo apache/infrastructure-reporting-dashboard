@@ -58,6 +58,8 @@ async function render_dashboard_sitesource() {
                 source_url.innerText = data.svn_url.substr(40);
             else if (data.svn_url.startsWith('https://svn-master.apache.org/repos/infra/'))
                 source_url.innerText = data.svn_url.substr(42);
+            else if (data.svn_url.startsWith('https://svn.apache.org/repos/asf/'))
+                source_url.innerText = data.svn_url.substr(33);
         }
 
         const site_url = document.createElement('a');
@@ -129,15 +131,19 @@ async function render_dashboard_sitesource() {
             const [rev_no, rev_date] = split_once(data.git_version, " ");
             rev_link.href = `${data.git_url.replace(/\/$/, '')}/commit/${rev_no}`; // trim trailing slashes
             rev_link.innerText = rev_no;
+            rev_link.title = rev_date
             dates.appendChild(document.createTextNode(" ("));
             dates.appendChild(rev_link);
             dates.appendChild(document.createTextNode(") "));
         } else if (data.svn_version) {
             const [rev_no, rev_date] = split_once(data.svn_version, " ");
-            rev_link.href = `https://svn.apache.org/viewvc?view=revision&revision=${rev_no}`;
+            if (vcs.innerText == 'svn/asf:') {
+                rev_link.href = `https://svn.apache.org/viewvc?view=revision&revision=${rev_no}`;                
+            }
             rev_link.innerText = "r" + rev_no;
             dates.appendChild(document.createTextNode(" ("));
             dates.appendChild(rev_link);
+            rev_link.title = rev_date
             dates.appendChild(document.createTextNode(") "));
         }
         
