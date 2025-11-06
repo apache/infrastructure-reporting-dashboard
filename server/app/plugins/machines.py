@@ -83,13 +83,16 @@ class Host:
 
 def l2fp(line):
     """Public key to fingerprints"""
-    key = base64.b64decode(line.strip().split()[-1])
-    fp_plain = hashlib.md5(key).hexdigest()
-    fp_md5 = ":".join(a + b for a, b in zip(fp_plain[::2], fp_plain[1::2]))
-    fp_sha256 = (
-        base64.b64encode(hashlib.sha256(key).digest()).decode("ascii").rstrip("=")
-    )
-    return fp_md5, fp_sha256
+    bits = line.strip().split()
+    if bits:
+        key = base64.b64decode(bits[-1])
+        fp_plain = hashlib.md5(key).hexdigest()
+        fp_md5 = ":".join(a + b for a, b in zip(fp_plain[::2], fp_plain[1::2]))
+        fp_sha256 = (
+            base64.b64encode(hashlib.sha256(key).digest()).decode("ascii").rstrip("=")
+        )
+        return fp_md5, fp_sha256
+    return "UNKNOWN", "UNKNOWN"
 
 
 async def fpscan():
