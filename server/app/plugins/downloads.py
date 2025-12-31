@@ -17,7 +17,7 @@
 # under the License.
 """ASF Infrastructure Reporting Dashboard - Download Statistics Tasks"""
 import asyncio
-from ..lib import middleware, config
+from ..lib import config
 import elasticsearch
 import elasticsearch_dsl
 from .. import plugins

@@ -18,8 +18,6 @@
 """ASF Infrastructure Reporting Dashboard"""
 """Handler for mail stats"""
 import asfquart
-from asfquart.auth import Requirements as R
-from ..lib import config
 from ..plugins import machines
 
 
@@ -28,6 +26,4 @@ from ..plugins import machines
     "/api/machines",
 )
 async def process_fingerprints():
-    form_data = await asfquart.utils.formdata()
-    session = await asfquart.session.read()
     return machines.get_fps()
