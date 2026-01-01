@@ -113,14 +113,14 @@ async def fpscan():
         ipv4 = [x for x in host_data.ips if "." in x][0]
 
         try:
-            kdata_rsa = await asyncio.create_subprocess_shell(
-                f"{KEYSCAN} -T 1 -4 -t rsa {name}.apache.org",
+            kdata_rsa = await asyncio.create_subprocess_exec(
+                KEYSCAN, '-T', '1', '-4', '-t', 'rsa', f"{name}.apache.org",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
                 # (KEYSCAN, '-T', '1', '-4', '-t', 'rsa' f"{name}.apache.org"), stderr=asyncio.subprocess.PIPE
             )
-            kdata_ecdsa = await asyncio.create_subprocess_shell(
-                f"{KEYSCAN} -T  1  -4  -t  ecdsa  {name}.apache.org",
+            kdata_ecdsa = await asyncio.create_subprocess_exec(
+                KEYSCAN, '-T', '1', '-4', '-t', 'ecdsa', f"{name}.apache.org",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
                 # (KEYSCAN, '-T', '1', '-4', '-t', 'ecdsa', f"{name}.apache.org"), stderr=asyncio.subprocess.PIPE
