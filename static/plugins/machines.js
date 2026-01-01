@@ -17,6 +17,8 @@ function split_once(str, splitter) {
 
 async function render_dashboard_machines() {
     document.getElementById('page_title').innerText = "Machine Fingerprints";
+    document.getElementById('page_description').innerText = "This page shows information on host machines";
+
     if (!machines_json) await seed_machines();
  
     const outer_chart_area = document.getElementById('chart_area');
