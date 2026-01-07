@@ -43,4 +43,3 @@ async function render_dashboard_uptime() {
 
 }
 
-seed_uptime_stats();
