@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+LDAPURI='ldaps://ldap-us.apache.org ldaps://ldap-eu.apache.org'
+export LDAPURI
+
+LDAPTLS_REQCERT=never
+export LDAPTLS_REQCERT
+
+LDAPBASE='dc=apache,dc=org'
+export LDAPBASE
+
+# .bindpw file needs to be mode 600; else warning is reported
+# Also must not contain trailing NL; ditto for binddn
+exec ldapsearch -D "$(cat /var/www/docker-data/binddn)" -y /var/www/docker-data/.bindpw  "$@"

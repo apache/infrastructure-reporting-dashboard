@@ -1,0 +1,17 @@
+services:
+  infra-reports:
+    image: infra-reports
+    build: .
+    hostname: infra-reports
+    # for syslog-ng
+    cap_add:
+      - NET_BIND_SERVICE
+      - NET_BROADCAST
+      - DAC_READ_SEARCH
+      - SYSLOG
+    volumes:
+    - .:/var/www
+    - ./docker-data/x1:/x1
+    - ./docker-data/apache2_log:/var/log/apache2
+    ports:
+      - "80:80"
