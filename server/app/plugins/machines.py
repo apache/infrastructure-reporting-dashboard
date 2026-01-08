@@ -17,10 +17,13 @@
 # under the License.
 
 """ Machine fingerprint scanner and checker app thingy
-Spits out:
-    - index.html: a human readable page with all fingerprints
-    - machines.json: a json file to keep score of previous fingerprints
-    - fp.json: a json file for nodeping to work with
+Generates:
+    globals()["FPDATA"] {
+        "HTML": html,
+        "changes": {"changed": len(all_notes), "notes": all_notes},
+        "old_hosts": old_hosts,
+    }    
+This is returned by get_fps() invoked from /api/machines
  """
 import asyncio
 from ..lib import config
