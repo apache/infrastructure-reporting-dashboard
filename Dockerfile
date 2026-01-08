@@ -1,6 +1,4 @@
 FROM python:3.11
-# 24.04 noble - no puppetserver package
-# 22.04 - jammy - OK
 
 ENV \
     LANG=C.UTF-8 \
