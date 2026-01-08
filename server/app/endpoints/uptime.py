@@ -16,11 +16,11 @@
 # specific language governing permissions and limitations
 # under the License.
 """ASF Infrastructure Reporting Dashboard"""
-# import functools
+import functools
 
 """Handler for uptime stats"""
 import asfquart
-from ..lib import config
+from ..lib import middleware, config
 from ..plugins import uptime
 
 
@@ -28,21 +28,21 @@ from ..plugins import uptime
     "/api/uptime",
 )
 async def process_uptime():
-    # form_data = await asfquart.utils.formdata()
-    # session = await asfquart.session.read()
+    form_data = await asfquart.utils.formdata()
+    session = await asfquart.session.read()
     uptime_stats = uptime.get_stats()
     series = config.reporting.uptime.get("series", {})
     uptime_collated = {}
-    # uptime_summed = {
-    #     "year": 100.0,
-    #     "month": 100.0,
-    #     "week": 100.0,
-    # }
-    u_y = 0
-    u_m = 0
-    u_w = 0
-    u_c = 0
+    uptime_summed = {
+        "year": 100.0,
+        "month": 100.0,
+        "week": 100.0,
+    }
     if series:
+        u_y = 0
+        u_m = 0
+        u_w = 0
+        u_c = 0
         for key, hosts in series.items():
             series_stats = []
             series_months = {}
@@ -70,9 +70,9 @@ async def process_uptime():
             }
     return {
         "uptime_total": {
-            "year": float(u_y / (u_c or 1)),
-            "month": float(u_m / (u_c or 1)),
-            "week": float(u_w / (u_c or 1)),
+            "year": float(u_y / u_c),
+            "month": float(u_m / u_c),
+            "week": float(u_w / u_c),
         },
         "uptime_collated": uptime_collated,
         "uptime_individual": uptime_stats,

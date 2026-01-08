@@ -17,10 +17,13 @@
 # under the License.
 
 """ Machine fingerprint scanner and checker app thingy
-Spits out:
-    - index.html: a human readable page with all fingerprints
-    - machines.json: a json file to keep score of previous fingerprints
-    - fp.json: a json file for nodeping to work with
+Generates:
+    globals()["FPDATA"] {
+        "HTML": html,
+        "changes": {"changed": len(all_notes), "notes": all_notes},
+        "old_hosts": old_hosts,
+    }    
+This is returned by get_fps() invoked from /api/machines
  """
 import asyncio
 from ..lib import config
@@ -127,7 +130,7 @@ async def fpscan():
             )
             keydata_rsa, rsa_stderr = await kdata_rsa.communicate()
             keydata_ecdsa, ecdsa_stderr = await kdata_ecdsa.communicate()
-            if not keydata_rsa or not keydata_ecdsa:
+            if not keydata_rsa:
                 unreachable.append(name)
                 continue
             gunk, rsa_sha256 = l2fp(keydata_rsa)
