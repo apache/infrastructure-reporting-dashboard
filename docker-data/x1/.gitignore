@@ -1,0 +1,2 @@
+# Override the top-level .gitignore so this directory is kept
+!downloads/

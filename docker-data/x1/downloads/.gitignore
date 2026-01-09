@@ -1,0 +1,3 @@
+# Ignore the download status files, but not the marker files
+
+**/*.json
