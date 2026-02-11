@@ -21,7 +21,6 @@ import asfquart
 import asfquart.auth
 from asfquart.auth import Requirements as R
 import asfquart.session
-from ..lib import middleware, config
 from ..plugins import jirastats
 
 
@@ -31,7 +30,6 @@ from ..plugins import jirastats
 )
 async def process_jira():
     form_data = await asfquart.utils.formdata()
-    session = await asfquart.session.read()
     action = form_data.get("action")
     if action == "stats":  # Basic stats
         return jirastats.get_issues()
