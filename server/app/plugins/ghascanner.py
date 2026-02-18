@@ -41,6 +41,7 @@ CREATE_RUNS_DB = """CREATE TABLE "runs" (
     PRIMARY KEY("id" AUTOINCREMENT)
 );"""
 DEFAULT_PROJECTS_LIST = "https://whimsy.apache.org/public/public_ldap_projects.json"
+MAX_DB_ENTRIES = 1000000  # Max 1 million entries in the db
 projects = []
 
 token = ""
@@ -142,6 +143,8 @@ async def scan_builds():
             continue
         try:
             await gather_stats(payload)
+            # Prune db down to the latest 1 million entries
+            db.runc(f"DELETE FROM runs WHERE id < ((select MAX(id) from runs) - {MAX_DB_ENTRIES});")
         except Exception as e:
             print(f"GitHub Actions poll failed: {e}")
 
