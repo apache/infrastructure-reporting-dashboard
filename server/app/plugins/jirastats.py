@@ -222,11 +222,12 @@ async def jira_scan_full(days=DEFAULT_SCAN_DAYS):
 
 
 async def scan_loop():
+    await jira_scan_full()  # On startup, do a full 90 day scan
     while True:
         if _scan_schedule:  # Things are scheduled for a scan
             now = time.time()
             print("Starting Jira scan")
-            processed = await jira_scan_full()
+            processed = await jira_scan_full(days=1)  # Only search past 24 hours on a regular scan
             print(f"Processed {processed} tickets in {int(time.time()-now)} seconds")
             _scan_schedule.pop()  # pop an item, freeing up space to allocate a new scan
         await asyncio.sleep(60)  # Always wait 60 secs between scan checks
