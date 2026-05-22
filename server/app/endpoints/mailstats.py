@@ -19,7 +19,6 @@
 """Handler for mail stats"""
 import asfquart
 from asfquart.auth import Requirements as R
-from ..lib import middleware, config
 from ..plugins import mailstats
 
 
@@ -28,8 +27,6 @@ from ..plugins import mailstats
     "/api/mailstats",
 )
 async def process_mailstats():
-    form_data = await asfquart.utils.formdata()
-    session = await asfquart.session.read()
     return mailstats.get_stats()
 
 

@@ -18,7 +18,7 @@
 """ASF Infrastructure Reporting Dashboard"""
 """Handler for site source page"""
 import asfquart
-from ..lib import middleware, config
+from ..lib import middleware
 from .. import plugins
 
 site_source_url = middleware.CachedJson("https://www.apache.org/site-sources.json", expiry=1800)
@@ -28,8 +28,6 @@ site_source_url = middleware.CachedJson("https://www.apache.org/site-sources.jso
     "/api/sitesource",
 )
 async def process_sitesource():
-    form_data = await asfquart.utils.formdata()
-    session = await asfquart.session.read()
     return await site_source_url.json
 
 

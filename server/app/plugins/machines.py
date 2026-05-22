@@ -26,13 +26,7 @@ Generates:
 This is returned by get_fps() invoked from /api/machines
  """
 import asyncio
-from ..lib import config
 from .. import plugins
-import aiohttp
-import aiohttp.client_exceptions
-import functools
-import os
-import json
 import requests
 import subprocess
 import base64
@@ -40,7 +34,6 @@ import hashlib
 import time
 import datetime
 import fnmatch
-import sys
 
 KEYSCAN = "/usr/bin/ssh-keyscan"
 IPDATA = requests.get(
@@ -128,13 +121,13 @@ async def fpscan():
                 stderr=asyncio.subprocess.PIPE
                 # (KEYSCAN, '-T', '1', '-4', '-t', 'ecdsa', f"{name}.apache.org"), stderr=asyncio.subprocess.PIPE
             )
-            keydata_rsa, rsa_stderr = await kdata_rsa.communicate()
-            keydata_ecdsa, ecdsa_stderr = await kdata_ecdsa.communicate()
+            keydata_rsa, _rsa_stderr = await kdata_rsa.communicate()
+            keydata_ecdsa, _ecdsa_stderr = await kdata_ecdsa.communicate()
             if not keydata_rsa:
                 unreachable.append(name)
                 continue
-            gunk, rsa_sha256 = l2fp(keydata_rsa)
-            gunk, ecdsa_sha256 = l2fp(keydata_ecdsa)
+            _gunk, rsa_sha256 = l2fp(keydata_rsa)
+            _gunk, ecdsa_sha256 = l2fp(keydata_ecdsa)
             reachable += 1
             now = int(time.time())
             now_str = datetime.datetime.fromtimestamp(now).strftime("%c")
@@ -160,7 +153,7 @@ async def fpscan():
 
         except KeyboardInterrupt:
             break
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             unreachable.append(name)
 
     stamp = time.strftime("%Y-%m-%d %H:%M:%S %z", time.gmtime())
