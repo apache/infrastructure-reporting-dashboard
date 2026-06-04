@@ -78,12 +78,15 @@ async def show_gha_stats():
 
     start_from = time.time() - (hours * 3600)
     rows = []
+    fallback_projects = set()
     for original_row in BUILDS_CACHE:
         row = original_row.copy()  # We MAY pop 'jobs', so copy the dict, don't modify the original
         if row["run_start"] < start_from or row["run_finish"] < start_from:
             continue
-        if (project and row["project"] != project) or (
-                not project and row["project"] not in session.projects) and not session.isRoot:
+        if row["project"] not in session.projects and not session.isRoot:
+            continue
+        fallback_projects.add(row["project"])
+        if project and row["project"] != project:
             continue
         # Discount self-hosted unless asked for
         if selfhosted != "true":
@@ -94,7 +97,7 @@ async def show_gha_stats():
             row.pop('jobs', '')
         rows.append(row)
     return {
-        "all_projects": ghascanner.projects,
+        "all_projects": ghascanner.projects or sorted(fallback_projects),
         "selected_project": project,
         "builds": rows,
     }
