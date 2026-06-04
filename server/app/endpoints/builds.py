@@ -94,7 +94,7 @@ async def show_gha_stats():
             row.pop('jobs', '')
         rows.append(row)
     return {
-        "all_projects": ghascanner.projects,
+        "all_projects": ghascanner.get_projects(),
         "selected_project": project,
         "builds": rows,
     }

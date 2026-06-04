@@ -41,8 +41,9 @@ CREATE_RUNS_DB = """CREATE TABLE "runs" (
     PRIMARY KEY("id" AUTOINCREMENT)
 );"""
 DEFAULT_PROJECTS_LIST = "https://whimsy.apache.org/public/public_ldap_projects.json"
+PROJECTS_LIST_RETRY_SECONDS = 300
 MAX_DB_ENTRIES = 1000000  # Max 1 million entries in the db
-projects = []
+_projects: list[str] = []
 
 token = ""
 db = None
@@ -149,19 +150,32 @@ async def scan_builds():
             print(f"GitHub Actions poll failed: {e}")
 
 
-async def list_projects():
-    global projects
+async def _fetch_projects_attempt():
+    global _projects
     """Grabs a list of all projects from whimsy"""
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as hc:
         try:
             async with hc.get(DEFAULT_PROJECTS_LIST) as req:
                 if req.status == 200:
-                    projects = list((await req.json())["projects"].keys())
-        except (aiohttp.ClientError, asyncio.TimeoutError, json.JSONDecodeError) as e:
+                    _projects = list((await req.json())["projects"].keys())
+                    print(f"GHA stats: loaded {len(_projects)} projects from Whimsy")
+                    return True
+                else:
+                    print(f"GHA stats: Whimsy returned HTTP/{req.status}: {req.reason}")
+        except Exception as e:
             print(f"GHA stats: Could not fetch list of projects from {DEFAULT_PROJECTS_LIST}: {e}")
+    return False
 
+
+async def _fetch_projects():
+    while not await _fetch_projects_attempt():
+        await asyncio.sleep(PROJECTS_LIST_RETRY_SECONDS)
+
+
+def get_projects():
+    return _projects
 
 
 plugins.root.register(
-    scan_builds, list_projects, slug="ghactions", title="GitHub Actions Usage", icon="bi-github", private=True
+    scan_builds, _fetch_projects, slug="ghactions", title="GitHub Actions Usage", icon="bi-github", private=True
 )
