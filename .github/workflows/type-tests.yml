@@ -37,3 +37,6 @@ jobs:
       if: always() # even if mypy fails
       run: |
           pylint --recursive y .
+    - name: Unit tests
+      run: |
+          python -m unittest discover -s tests

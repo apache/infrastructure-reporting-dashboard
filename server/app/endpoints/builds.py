@@ -46,12 +46,12 @@ async def fetch_n_days(hours=MAX_BUILD_SPAN):
                 break
             for row in rowset:
                 row_as_dict = dict(row)
-                # If the job is too old, set 'jobs' entry to empty array, to save memory.
-                # We generally will not need the job data for older entries.
+                row_as_dict["jobs"] = json.loads(row_as_dict["jobs"])
+                ghascanner.normalize_run_row(row_as_dict)
+                # If the job is too old, set 'jobs' entry to empty array after
+                # normalization to save memory without preserving inflated totals.
                 if row_as_dict["run_finish"] < job_data_cutoff:
                     row_as_dict["jobs"] = []
-                else:
-                    row_as_dict["jobs"] = json.loads(row_as_dict["jobs"])
                 temp_cache.append(row_as_dict)
         # Wipe cache, set to new bits
         BUILDS_CACHE.clear()
