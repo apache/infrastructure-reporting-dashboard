@@ -23,10 +23,10 @@ from ..lib import config
 from ..plugins import machines
 
 
-@asfquart.auth.require()
 @asfquart.APP.route(
     "/api/machines",
 )
+@asfquart.auth.require()
 async def process_fingerprints():
     form_data = await asfquart.utils.formdata()
     session = await asfquart.session.read()

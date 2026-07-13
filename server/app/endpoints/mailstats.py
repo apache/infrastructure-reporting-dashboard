@@ -23,10 +23,10 @@ from ..lib import middleware, config
 from ..plugins import mailstats
 
 
-@asfquart.auth.require({R.root})
 @asfquart.APP.route(
     "/api/mailstats",
 )
+@asfquart.auth.require({R.root})
 async def process_mailstats():
     form_data = await asfquart.utils.formdata()
     session = await asfquart.session.read()
