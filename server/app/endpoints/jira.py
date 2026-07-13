@@ -25,10 +25,11 @@ from ..lib import middleware, config
 from ..plugins import jirastats
 
 
-@asfquart.auth.require({R.root})
 @asfquart.APP.route( 
     "/api/jira",
 )
+@asfquart.auth.require({R.root})
+
 async def process_jira():
     form_data = await asfquart.utils.formdata()
     session = await asfquart.session.read()
