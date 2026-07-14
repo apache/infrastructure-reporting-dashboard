@@ -23,10 +23,10 @@ from asfquart.auth import Requirements as R
 from ..lib import middleware, config
 from ..plugins import downloads
 
-@asfquart.auth.require
 @asfquart.APP.route(
     "/api/downloads",
 )
+@asfquart.auth.require
 async def process_downloads():
     form_data = await asfquart.utils.formdata()
     session = await asfquart.session.read()

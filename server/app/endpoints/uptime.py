@@ -68,6 +68,8 @@ async def process_uptime():
                 "past_week": sum([x[2] for x in series_stats]) / float(len(series_stats)) if series_stats else 100.0,
                 "monthly": {k: sum(vx for vx in v) / float(len(v)) if v else 100.0 for k, v in series_months.items()},
             }
+    if not uc:
+        uc = 1
     return {
         "uptime_total": {
             "year": float(u_y / u_c),
