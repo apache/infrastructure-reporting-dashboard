@@ -81,40 +81,7 @@ async def gather_stats(payload):
             async with hc.get(url, headers=headers) as req:
                 if req.status == 200:
                     data = await req.json()
-                    seconds_used = 0
-                    earliest_runner = None
-                    last_finish = None
-                    jobs = []
-                    for job in data["jobs"]:
-                        if job["started_at"] and job["completed_at"]:
-                            start_ts = dateutil.parser.isoparse(job["started_at"]).timestamp()
-                            end_ts = dateutil.parser.isoparse(job["completed_at"]).timestamp()
-                            job_name = job["workflow_name"]
-                            job_name_unique = f"{repo}/{job_name}"
-                            job_time = end_ts - start_ts
-                            seconds_used += job_time
-                            labels = job["labels"]
-                            steps = []
-                            if not earliest_runner or start_ts < earliest_runner:
-                                earliest_runner = start_ts
-                            if not last_finish or last_finish < end_ts:
-                                last_finish = end_ts
-                            for step in job["steps"]:
-                                stepname = step["name"]
-                                step_start_ts = dateutil.parser.isoparse(step["started_at"]).timestamp()
-                                step_end_ts = dateutil.parser.isoparse(step["completed_at"]).timestamp()
-                                step_time = step_end_ts - step_start_ts
-                                steps.append((stepname, step_start_ts, step_time))
-                            jobs.append(
-                                {
-                                    "name": job_name,
-                                    "name_unique": job_name_unique,
-                                    "job_duration": job_time,
-                                    "steps": steps,
-                                    "labels": labels,
-                                    "runner_group": job.get("runner_group_name", "GitHub Actions") or "GitHub Actions",
-                                }
-                            )
+                    seconds_used, earliest_runner, last_finish, jobs = parse_jobs(data, repo)
                     if earliest_runner:
                         run_dict = {
                             "project": project,
@@ -133,6 +100,77 @@ async def gather_stats(payload):
                     await asyncio.sleep(0.2)
     except (json.JSONDecodeError, ValueError):
         pass
+
+
+def job_used_runner(job):
+    """Returns whether a workflow job was assigned to a runner."""
+    return bool(job.get("runner_name"))
+
+
+def stored_job_used_runner(job):
+    """Returns whether a serialized job record should count as runner time."""
+    if "runner_name" in job:
+        return bool(job["runner_name"])
+    # Older stored rows did not include runner_name; queued-only cancellations
+    # observed from GitHub also have no steps, so use steps as the best signal.
+    return bool(job.get("steps"))
+
+
+def normalize_run_row(row):
+    """Adjusts cached DB rows to exclude serialized jobs that never used a runner."""
+    if row.get("jobs"):
+        # Recalculate from the filtered job list so cached rows with previous
+        # queued-time overcounts do not keep returning inflated seconds_used.
+        row["jobs"] = [job for job in row["jobs"] if stored_job_used_runner(job)]
+        row["seconds_used"] = sum(job["job_duration"] for job in row["jobs"])
+    return row
+
+
+def parse_jobs(data, repo):
+    """Calculates runner time from GitHub Actions jobs API data."""
+    seconds_used = 0
+    earliest_runner = None
+    last_finish = None
+    jobs = []
+    for job in data["jobs"]:
+        # GitHub can set started_at/completed_at for jobs that waited in the
+        # queue and were cancelled without ever getting a runner.
+        if not job_used_runner(job):
+            continue
+        if job["started_at"] and job["completed_at"]:
+            start_ts = dateutil.parser.isoparse(job["started_at"]).timestamp()
+            end_ts = dateutil.parser.isoparse(job["completed_at"]).timestamp()
+            job_name = job["workflow_name"]
+            job_name_unique = f"{repo}/{job_name}"
+            job_time = end_ts - start_ts
+            seconds_used += job_time
+            labels = job["labels"]
+            steps = []
+            if not earliest_runner or start_ts < earliest_runner:
+                earliest_runner = start_ts
+            if not last_finish or last_finish < end_ts:
+                last_finish = end_ts
+            for step in job["steps"]:
+                # Some job records can include incomplete step timestamp data;
+                # skip only that step while keeping the job's runner time.
+                if step["started_at"] and step["completed_at"]:
+                    stepname = step["name"]
+                    step_start_ts = dateutil.parser.isoparse(step["started_at"]).timestamp()
+                    step_end_ts = dateutil.parser.isoparse(step["completed_at"]).timestamp()
+                    step_time = step_end_ts - step_start_ts
+                    steps.append((stepname, step_start_ts, step_time))
+            jobs.append(
+                {
+                    "name": job_name,
+                    "name_unique": job_name_unique,
+                    "job_duration": job_time,
+                    "steps": steps,
+                    "labels": labels,
+                    "runner_name": job.get("runner_name", ""),
+                    "runner_group": job.get("runner_group_name", "GitHub Actions") or "GitHub Actions",
+                }
+            )
+    return seconds_used, earliest_runner, last_finish, jobs
 
 
 async def scan_builds():
