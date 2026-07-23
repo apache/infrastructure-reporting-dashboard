@@ -89,8 +89,9 @@ async def gather_stats(payload):
                         if job["started_at"] and job["completed_at"]:
                             start_ts = dateutil.parser.isoparse(job["started_at"]).timestamp()
                             end_ts = dateutil.parser.isoparse(job["completed_at"]).timestamp()
-                            job_name = job["workflow_name"]
-                            job_name_unique = f"{repo}/{job_name}"
+                            workflow_name = job["workflow_name"]
+                            workflow_name_unique = f"{repo}/{workflow_name}"
+                            job_name = job.get("name", workflow_name)
                             job_time = end_ts - start_ts
                             seconds_used += job_time
                             labels = job["labels"]
@@ -107,8 +108,9 @@ async def gather_stats(payload):
                                 steps.append((stepname, step_start_ts, step_time))
                             jobs.append(
                                 {
-                                    "name": job_name,
-                                    "name_unique": job_name_unique,
+                                    "name": workflow_name,
+                                    "name_unique": workflow_name_unique,
+                                    "job_name": job_name,
                                     "job_duration": job_time,
                                     "steps": steps,
                                     "labels": labels,

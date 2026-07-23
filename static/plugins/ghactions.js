@@ -4,6 +4,8 @@ const DEFAULT_LIMIT = 15;  // top N items
 const DEFAULT_GROUP = "name"; // Group workflows by name or path
 const DEFAULT_OTHERS_GHA = "(other projects)";
 const DEFAULT_OTHERS_GHA_SINGLE = "(other builds)";
+const DEFAULT_OTHERS_GHA_JOBS = "(other jobs)";
+const DEFAULT_OTHERS_GHA_STEPS = "(other steps)";
 async function seed_ghactions() {
     let qs = new URLSearchParams(document.location.hash);
     let qsnew = new URLSearchParams();
@@ -45,6 +47,143 @@ async function click_gha_project(params, old_project, hours, limit, group) {
     }
 }
 
+function add_gha_seconds(target, key, seconds) {
+    if (!seconds) return;
+    target[key] = (target[key] ? target[key] : 0) + seconds;
+}
+
+function gha_sorted_chart_values(values, topN, othersName) {
+    const sorted = Object.entries(values)
+        .map(([name, value]) => ({name, value}))
+        .sort((a,b) => b.value-a.value);
+    const top = sorted.slice(0, topN);
+    if (top.length < sorted.length) {
+        const topNames = new Set(top.map((x) => x.name));
+        const otherValue = sorted.reduce((sum, item) => sum + (topNames.has(item.name) ? 0 : item.value), 0);
+        top.push({
+            name: othersName,
+            value: otherValue,
+            itemStyle: {color: "#999"}
+        });
+    }
+    return top;
+}
+
+function gha_drilldown_button(text, onclick) {
+    const button = document.createElement('button');
+    button.type = "button";
+    button.className = "btn btn-sm btn-secondary";
+    button.style.margin = "4px";
+    button.innerText = text;
+    button.addEventListener('click', onclick);
+    return button;
+}
+
+function gha_expand_chart_card(chart, height="640px", innerHeight="560px") {
+    chart.style.maxWidth = "1240px";
+    chart.style.height = height;
+    chart.style.minHeight = height;
+    chart.style.overflow = "visible";
+    const inner = chart.firstElementChild;
+    if (inner) {
+        inner.style.height = innerHeight;
+        inner.style.width = "1240px";
+        const chartInstance = echarts.getInstanceByDom(inner);
+        if (chartInstance) chartInstance.resize();
+    }
+    return chart;
+}
+
+function gha_warning(text) {
+    const warning = document.createElement('div');
+    warning.className = "alert alert-warning small";
+    warning.style.maxWidth = "1240px";
+    warning.style.marginTop = "8px";
+    warning.innerText = text;
+    return warning;
+}
+
+function gha_job_name_missing(job) {
+    return !job.job_name;
+}
+
+function gha_job_step_signature(job) {
+    const step_names = [];
+    for (const step of job.steps || []) {
+        const step_name = step[0];
+        if (!step_name || step_name === "Set up job" || step_name === "Checkout" || step_name === "Complete job" || step_name.startsWith("Post ")) continue;
+        step_names.push(step_name);
+    }
+    return step_names.join("\n") || "no recorded steps";
+}
+
+function gha_unknown_job_group_name(workflowData, job) {
+    const signature = gha_job_step_signature(job);
+    if (!workflowData.unknown_job_groups[signature]) {
+        workflowData.unknown_job_groups[signature] = `Unnamed job group #${Object.keys(workflowData.unknown_job_groups).length + 1}`;
+    }
+    return workflowData.unknown_job_groups[signature];
+}
+
+function gha_job_display_name(workflowData, job) {
+    if (!gha_job_name_missing(job)) return job.job_name;
+    return gha_unknown_job_group_name(workflowData, job);
+}
+
+function show_gha_step_drilldown(target, workflowName, jobName, steps_by_time, topN, showWorkflowChart, showJobChart) {
+    target.innerText = "";
+    const step_values = gha_sorted_chart_values(steps_by_time, topN, DEFAULT_OTHERS_GHA_STEPS);
+    const total_seconds = Object.values(steps_by_time).reduce((sum, val) => sum + val, 0);
+    if (!total_seconds) {
+        target.innerText = `No step timing data found for ${jobName}.`;
+        return;
+    }
+
+    const nav = document.createElement('div');
+    nav.appendChild(gha_drilldown_button("Back to workflows", showWorkflowChart));
+    nav.appendChild(gha_drilldown_button("Back to jobs", showJobChart));
+    target.appendChild(nav);
+
+    const title = `Step Runtime Breakdown\n${workflowName}\n${jobName}`;
+    const chart = chart_pie(title, "Summed step durations for this job. Step totals may not equal full job runtime because GitHub does not expose every runner overhead as a step.", step_values, {width: "1240px", height: "560px"}, donut=false,
+        fmtoptions={
+            value: (val) => `${val.data.name}: ${seconds_to_text(val.data.value)}`,
+            legend: (val) => `${val.data.name}: \n${((val.data.value/total_seconds)*100).toFixed(2)}%`
+        });
+    target.appendChild(gha_expand_chart_card(chart));
+}
+
+function show_gha_job_drilldown(target, workflowName, workflowData, topN, showWorkflowChart) {
+    target.innerText = "";
+    const job_values = gha_sorted_chart_values(workflowData.jobs, topN, DEFAULT_OTHERS_GHA_JOBS);
+    const total_seconds = Object.values(workflowData.jobs).reduce((sum, val) => sum + val, 0);
+    if (!total_seconds) {
+        target.innerText = `No job timing data found for ${workflowName}.`;
+        return;
+    }
+
+    const showJobChart = () => show_gha_job_drilldown(target, workflowName, workflowData, topN, showWorkflowChart);
+    const nav = document.createElement('div');
+    nav.appendChild(gha_drilldown_button("Back to workflows", showWorkflowChart));
+    target.appendChild(nav);
+    if (workflowData.missing_job_names) {
+        const group_count = Object.keys(workflowData.unknown_job_groups).length;
+        target.appendChild(gha_warning(`${workflowData.missing_job_names} job record(s) do not include a GitHub job name. They are grouped by matching step names into ${group_count} "Unnamed job group #N" bucket(s).`));
+    }
+
+    const title = `Job Runtime Breakdown\n${workflowName}`;
+    const chart = chart_pie(title, "Click a job to see its step runtime breakdown.", job_values, {width: "1240px", height: "560px"}, donut=false,
+        fmtoptions={
+            value: (val) => `${val.data.name}: ${seconds_to_text(val.data.value)}`,
+            legend: (val) => `${val.data.name}: \n${((val.data.value/total_seconds)*100).toFixed(2)}%`
+        }, legend=null, onclick=(params) => {
+            if (params && params.name && params.name !== DEFAULT_OTHERS_GHA_JOBS) {
+                show_gha_step_drilldown(target, workflowName, params.name, workflowData.steps[params.name] || {}, topN, showWorkflowChart, showJobChart);
+            }
+    });
+    target.appendChild(gha_expand_chart_card(chart));
+}
+
 function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, group = DEFAULT_GROUP, selfhosted = false) {
     let project_txt = project ? project : "All projects";
     if (!project) group = DEFAULT_GROUP
@@ -56,6 +195,7 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
     const cost_per_runner_minute_private = 0.01072
     const cost_per_runner_minute_public = 0.006341958
     const projects_by_time = {}
+    const workflows_by_time = {}
     let total_seconds = 0;
 
 
@@ -72,7 +212,18 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
                 }
                 // Group by workflow name or the actions .yml file used
                 const groupkey = (group === "name") ? job.name : (build.workflow_path||"unknown.yml");
-                if (jd) projects_by_time[groupkey] = (projects_by_time[groupkey] ? projects_by_time[groupkey] : 0) + jd;
+                if (jd) {
+                    add_gha_seconds(projects_by_time, groupkey, jd);
+                    if (!workflows_by_time[groupkey]) workflows_by_time[groupkey] = {jobs: {}, steps: {}, missing_job_names: 0, unknown_job_groups: {}};
+                    const workflow_data = workflows_by_time[groupkey];
+                    const job_name = gha_job_display_name(workflow_data, job);
+                    if (gha_job_name_missing(job)) workflow_data.missing_job_names++;
+                    add_gha_seconds(workflows_by_time[groupkey].jobs, job_name, jd);
+                    if (!workflows_by_time[groupkey].steps[job_name]) workflows_by_time[groupkey].steps[job_name] = {};
+                    for (const step of job.steps || []) {
+                        add_gha_seconds(workflows_by_time[groupkey].steps[job_name], step[0] || "Unknown step", step[2]);
+                    }
+                }
             }
         }
         else if (build.seconds_used) {
@@ -101,14 +252,25 @@ function show_ghactions(project, hours = DEFAULT_HOURS, topN = DEFAULT_LIMIT, gr
     const legends = r_array.map((x) => x.name);
 
     const timetxt = hours > 24 ? Math.floor(hours/24) + " days" : hours + " hours";
-    const donut_recipients = chart_pie(`GitHub Actions Build Time Used, past ${timetxt}.\nTotal usage: ${Math.round(total_seconds/60).pretty()} minutes, or ${Math.round(total_seconds/(hours*3600))} FT runners. Estimated credit use: \$${(cost_per_runner_minute_public*total_seconds/60).pretty()}`, "", r_array_sorted, {width: "1240px", height: "500px"}, donut=false,
-        fmtoptions={
-            value: (val) => `${val.data.name}: ${seconds_to_text(val.data.value)}, or ${Math.round(val.data.value/(hours*3600))} FT runner(s)`,
-            legend: (val) => `${val.data.name}: \n${((val.data.value/total_seconds)*100).toFixed(2)}%`
-        }, legend=null, onclick=(params) => click_gha_project(params, project, hours, topN, group));
-    donut_recipients.style.maxWidth = "1240px";
-    donut_recipients.style.height = "500px";
-    outer_chart_area.appendChild(donut_recipients);
+    const chart_slot = document.createElement('div');
+    const showWorkflowChart = () => {
+        chart_slot.innerText = "";
+        const chart_click = project ? (params) => {
+            if (params && params.name && params.name !== DEFAULT_OTHERS_GHA_SINGLE) {
+                show_gha_job_drilldown(chart_slot, params.name, workflows_by_time[params.name] || {jobs: {}, steps: {}}, topN, showWorkflowChart);
+            }
+        } : (params) => click_gha_project(params, project, hours, topN, group);
+        const donut_recipients = chart_pie(`GitHub Actions Build Time Used, past ${timetxt}.\nTotal usage: ${Math.round(total_seconds/60).pretty()} minutes, or ${Math.round(total_seconds/(hours*3600))} FT runners. Estimated credit use: \$${(cost_per_runner_minute_public*total_seconds/60).pretty()}`, "", r_array_sorted, {width: "1240px", height: "500px"}, donut=false,
+            fmtoptions={
+                value: (val) => `${val.data.name}: ${seconds_to_text(val.data.value)}, or ${Math.round(val.data.value/(hours*3600))} FT runner(s)`,
+                legend: (val) => `${val.data.name}: \n${((val.data.value/total_seconds)*100).toFixed(2)}%`
+            }, legend=null, onclick=chart_click);
+        donut_recipients.style.maxWidth = "1240px";
+        donut_recipients.style.height = "500px";
+        chart_slot.appendChild(donut_recipients);
+    };
+    showWorkflowChart();
+    outer_chart_area.appendChild(chart_slot);
 
     // filters
     const hourpicker = document.createElement('select');
